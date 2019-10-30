@@ -23,11 +23,11 @@ fn main() {
 
 #[derive(Debug)]
 struct Sequencer {
-    grid: u64,
+    grid: u128,
     patterns: HashMap<String, Pattern>,
 
     current_pattern: Option<String>,
-    current_step: u64
+    current_step: u128
 }
 
 impl Sequencer {
@@ -67,9 +67,25 @@ impl Sequencer {
             let g = self.grid as u128 * 1000;
             let m = e % g;
             if m == 0 {
-                println!("{} {}", e / g, t.elapsed().as_micros() - e);
+                let i = e / g;
+                let frame = self.frame_get(e % (g * 8) / 1000);
+                println!("{:?}", frame);
+                println!("{} {}", i, t.elapsed().as_micros() - e);
             }
         }
+    }
+
+    fn frame_get (&self, t: u128) -> HashMap<String, String> {
+        let pattern_name = self.current_pattern.as_ref().expect("wat");
+        let pattern = self.patterns.get(&pattern_name.to_string()).expect("wat");
+        let mut frame = HashMap::new();
+        for (name, track) in pattern.tracks.iter() {
+            frame.insert(
+                name.to_string(),
+                track.events.get(&t).expect("wat t").to_string()
+            );
+        }
+        frame
     }
 
     fn grid_set (&mut self, line: &str) {
@@ -111,7 +127,7 @@ impl Sequencer {
         self.current_step += 1;
     }
 
-    fn step_get (&mut self) -> u64 {
+    fn step_get (&mut self) -> u128 {
         self.current_step * self.grid
     }
 }
@@ -123,7 +139,7 @@ struct Pattern {
 
 #[derive(Debug)]
 struct Track {
-    events: BTreeMap<u64, String>
+    events: BTreeMap<u128, String>
 }
 
 impl Track {
