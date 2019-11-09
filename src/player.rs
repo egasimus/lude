@@ -1,43 +1,71 @@
 use std::collections::HashMap;
 use std::time::Instant;
-use crate::model::Sequence;
+use crate::parser::Document;
+use crate::model::Event;
 
 #[derive(Debug)]
 pub struct Player {
-    pub grid_usec: u128,
-    pub sequences: HashMap<String, Sequence>,
-    pub playing:   Vec<String>,
+    grid_usec: u128,
+    document: Document,
+    started: Option<Instant>,
+    last_step: Option<u128>
 }
 
 impl Player {
+
+    pub fn new (document: Document) -> Player {
+        Player {
+            grid_usec: 234000,
+            started:   None,
+            last_step: None,
+            document
+        }
+    }
+
     pub fn play (&mut self) {
-        let playback_started = Instant::now();
-        let mut last_step: i128 = -1;
+        self.started = Some(Instant::now());
         loop {
-            let elapsed_usec = playback_started.elapsed().as_micros();
-            let grid_step = elapsed_usec / self.grid_usec;
-            let grid_jitter = elapsed_usec % self.grid_usec;
-            if grid_step as i128 > last_step {
-                //println!("{:?}", frame);
-                last_step = grid_step as i128;
-                println!(
-                    "{} {} {} {}",
-                    elapsed_usec,
-                    grid_step,
-                    grid_jitter,
-                    playback_started.elapsed().as_micros() - elapsed_usec
-                );
-                for name in &self.playing {
-                    let sequence = self.sequences.get(name).unwrap();
-                    let index = elapsed_usec % (sequence.length * 1000) / 1000;
-                    print!(" {} {} ", &sequence.length * 1000, &index);
-                    match sequence.events.get(&index) {
-                        None    => print!(""),
-                        Some(x) => print!("{:#?}", &x)
-                    }
-                    println!(" {} ", &name);
-                }
+            match self.started {
+                Some(_) => self.tick(),
+                None => break
             }
         }
     }
+
+    pub fn stop (&mut self) {
+        self.started = None
+    }
+
+    fn get_step (&self) -> (u128, u128) {
+        let elapsed = self.started.unwrap().elapsed().as_micros();
+        let step    = elapsed / self.grid_usec;
+        let jitter  = elapsed % self.grid_usec;
+        (step, jitter)
+    }
+
+    fn tick (&mut self) {
+        let (step, jitter) = self.get_step();
+        match self.last_step {
+            None => self.step(step, jitter),
+            Some(last_step) => if step > last_step {
+                self.step(step, jitter)
+            }
+        }
+    }
+
+    fn step (&mut self, step: u128, jitter: u128) {
+        self.last_step = Some(step);
+        let main_sequence = self.document.sequences.get("<main>").unwrap();
+        print!("{}+{}us", &step, &jitter);
+        match main_sequence.get(step) {
+            None => {},
+            Some(s) => {
+                for event in s {
+                    print!("{:#?}", &event.name);
+                }
+            }
+        }
+        println!("");
+    }
+
 }

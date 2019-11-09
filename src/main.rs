@@ -3,8 +3,7 @@ extern crate pest;
 
 use std::env;
 use std::process::exit;
-use std::fs::{File, read_to_string};
-use std::io::BufReader;
+use std::fs::read_to_string;
 
 mod model;
 mod player;
@@ -19,6 +18,8 @@ fn main() {
     let source = read_to_string(filename).expect("cannot read file");
     let parsed = parse(&source);
     println!("{:#?}", &parsed);
+    let mut player = Player::new(parsed);
+    player.play();
     /*let file = File::open(filename}.unwrap();
     let reader = BufReader::new(file);
     let (grid, sequences, playing) = load(reader);

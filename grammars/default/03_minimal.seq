@@ -1,2 +1,3 @@
-x = (put /sounds/Kick/playing 0)
-[x&x x]
+kick = (put /sounds/Kick/playing 0)
+clap = (put /sounds/Clap/playing 0)
+[8; kick . kick&clap . . kick kick&clap .]

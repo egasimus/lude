@@ -39,4 +39,9 @@ impl Sequence {
             }
         }
     }
+
+    pub fn get (&self, step: u128) -> Option<&Vec<Event>> {
+        let step = step % self.length;
+        self.events.get(&step)
+    }
 }
