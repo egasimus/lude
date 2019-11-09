@@ -1,0 +1,31 @@
+WHITESPACE = _{ " " | NEWLINE }
+Separator  = { WHITESPACE | NEWLINE }
+
+Identifier = { (LETTER | NUMBER | "_")+ }
+Number     = { NUMBER+ }
+Path       = { "/" ~ Identifier ~ ("/" ~ Identifier)* ~ "/"? }
+Token      = { Identifier | Path }
+Expression = ${ "(" ~ Token* ~ (Separator+ ~ Token)* ~ ")" }
+Assignment = { Identifier ~ "=" ~ Expression }
+
+
+SeqStart   = { "[" ~ Separator* ~ Duration? ~ Separator* }
+Duration   = ${ Number ~ ";" ~ Separator? }
+
+SeqBody    = ${ Step ~ (Separator+ ~ Step)* }
+Step       = { Rest | Hit | Sequence }
+Rest       = { "." }
+Hit        = { Identifier ~ (MultiHit ~ Identifier)* }
+MultiHit   = { Separator* ~ "&" ~ Separator* }
+
+SeqEnd     = ${ Separator * ~ "]" ~ SeqEnder* }
+SeqEnder   = { Repeats | Divide }
+Repeats    = ${ "*" ~ Number }
+Divide     = ${ "/" ~ Number }
+
+Sequence   = ${ SeqStart ~ SeqBody? ~ SeqEnd }
+
+NamedSequence = { Identifier ~ ":" ~ Sequence }
+
+Declaration = { Assignment | Sequence | NamedSequence }
+Document    = { SOI ~ Declaration* ~ EOI }
