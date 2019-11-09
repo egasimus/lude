@@ -1,0 +1,16 @@
+                            # this comment is ignored
+Peng=0                      # bind name to value
+Peng = 1                    # update binding, spaces optional
+Kick=/sounds/kick/playing   # bind name to control
+Kick                        # print value
+Kick 1                      # play once
+Kick 1 0 1 0                # play sequence
+Kick |1 0 1 0|x2            # repeat
+Kick |1 0 1 0 :|            # loop forever
+Snare=/sounds/snare/(playing,velocity) # bind to two controls
+Snare 
+ A 
+]
+
+---Kick=/sounds/kick/playing
+Kick 0

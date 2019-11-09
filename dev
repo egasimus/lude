@@ -1,0 +1,9 @@
+#!/home/demo/Repos/jam/belt/result/bin/belt
+
+test:
+ #!/bin/sh
+ ./result/bin/jam-seqs ./example.seq
+
+build:
+ #!/usr/bin/env bash
+ time nix-build -E 'with import <nixpkgs> {}; callPackage ./default.nix {}' $@
