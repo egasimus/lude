@@ -1,15 +1,11 @@
-use std::env;
-use std::process::exit;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
-use std::collections::{HashMap, BTreeMap};
-use std::cmp::min;
-use std::time::Instant;
+use std::collections::HashMap;
 use indexmap::IndexMap;
 
 #[derive(Debug)]
 pub struct Event {
-    name: String
+    pub name: String
 }
 
 impl Event {
@@ -30,10 +26,11 @@ impl Sequence {
     }
 }
 
-pub fn load (reader: BufReader<File>) -> (u128, HashMap<String, Sequence>) {
+pub fn load (reader: BufReader<File>) -> (u128, HashMap<String, Sequence>, Vec<String>) {
     let grid: u128 = 234;
     let mut instrument: Option<String> = None;
     let mut sequences: HashMap<String, Sequence> = HashMap::new();
+    let mut playing: Vec<String> = Vec::new();
     for (_index, result) in reader.lines().enumerate() {
         let raw = result.expect("could not read line");
         let line = raw.trim_end();
@@ -44,6 +41,8 @@ pub fn load (reader: BufReader<File>) -> (u128, HashMap<String, Sequence>) {
                     Some(char) => {
                         if char == ' ' {
                             panic!("E001")
+                        } else if char == '>' {
+                            playing.push(line[1..].to_string());
                         } else {
                             instrument = Some(line.to_string())
                         }
@@ -66,7 +65,7 @@ pub fn load (reader: BufReader<File>) -> (u128, HashMap<String, Sequence>) {
             }
         }
     }
-    (grid, sequences)
+    (grid, sequences, playing)
 }
 
 fn parse_line (grid: u128, line: &str) -> (String, Sequence) {

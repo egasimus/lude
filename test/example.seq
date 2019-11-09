@@ -12,4 +12,6 @@ Snare
 Hat
  A = . x . x
 
-Play Kick[A] & Snare[B] & Hat[C]
+>Kick.A
+>Snare.B
+>Hat.A
