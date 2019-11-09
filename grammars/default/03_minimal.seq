@@ -1,0 +1,2 @@
+x = (put /sounds/Kick/playing 0)
+[x&x x]

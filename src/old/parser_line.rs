@@ -1,0 +1,78 @@
+pub fn load (reader: BufReader<File>) -> (u128, HashMap<String, Sequence>, Vec<String>) {
+    let grid: u128 = 234;
+    let mut instrument: Option<String> = None;
+    let mut sequences: HashMap<String, Sequence> = HashMap::new();
+    let mut playing: Vec<String> = Vec::new();
+    for (_index, result) in reader.lines().enumerate() {
+        let raw = result.expect("could not read line");
+        let line = raw.trim_end();
+        match &instrument {
+            None => {
+                match line.chars().next() {
+                    None => continue,
+                    Some(char) => {
+                        if char == ' ' {
+                            panic!("E001")
+                        } else if char == '>' {
+                            playing.push(line[1..].to_string());
+                        } else {
+                            instrument = Some(line.to_string())
+                        }
+                    }
+                }
+            },
+            Some(_) => {
+                match line.chars().next() {
+                    None => instrument = None,
+                    Some(char) => {
+                        if char == ' ' {
+                            let inst = instrument.as_ref().unwrap();
+                            let (name, seq) = parse_line(grid, &line.trim_start());
+                            sequences.insert(format!("{}.{}", inst, name), seq);
+                        } else {
+                            instrument = Some(line.to_string())
+                        }
+                    }
+                }
+            }
+        }
+    }
+    (grid, sequences, playing)
+}
+
+fn parse_line (grid: u128, line: &str) -> (String, Sequence) {
+    let mut name = "";
+    let mut i: usize = 0;
+    let mut chars = line.chars();
+    while i < line.len() {
+        let c = chars.next();
+        match c {
+            None => break,
+            Some(c) => {
+                if c == '=' {
+                    name = &line[0..i].trim_end();
+                    break
+                }
+            },
+        }
+        i += 1;
+    }
+    let mut j: u128 = 0;
+    let mut seq = Sequence::new();
+    while i < line.len() {
+        let c = chars.next();
+        match c {
+            None => break,
+            Some(c) => if c == ' ' {
+                continue
+            } else {
+                seq.events.insert(j, Event::new(c.to_string()));
+                j += grid;
+            }
+        }
+    }
+    seq.length = j + grid;
+    (name.to_string(), seq)
+}
+
+

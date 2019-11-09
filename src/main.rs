@@ -18,6 +18,7 @@ fn main() {
     let filename = &args[1];
     let source = read_to_string(filename).expect("cannot read file");
     let parsed = parse(&source);
+    println!("{:#?}", &parsed);
     /*let file = File::open(filename}.unwrap();
     let reader = BufReader::new(file);
     let (grid, sequences, playing) = load(reader);

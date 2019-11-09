@@ -1,0 +1,25 @@
+[128;
+  Click*4
+  Verse*2
+]
+
+Verse: [[32;Kick_A & Hat_A & Snare_A] [16;Kick_B & Snare_B]]
+
+x = (put /sounds/click/playing 0)
+Click:   [x]
+
+x = (put /sounds/kick/playing 0)
+Kick_A:  [4; x]
+Kick_B:  [x . . x . . x .]
+Kick_C:  [x . . . x x . .]
+Kick_D:  [x . . x . . x .]
+
+x = (put /sounds/snare/playing 0)
+Snare_A: [8; . . . . x]
+Snare_B: [. . x .]
+Snare_C: [. . x . . x . x .]
+
+x = (put /sounds/hat/playing 0)
+Hat_A:   [x .]
+Hat_B:   [x x x x x x [x x x x x x]/3]
+

@@ -33,7 +33,7 @@ impl Player {
                     print!(" {} {} ", &sequence.length * 1000, &index);
                     match sequence.events.get(&index) {
                         None    => print!(""),
-                        Some(x) => print!("{}", &x.name)
+                        Some(x) => print!("{:#?}", &x)
                     }
                     println!(" {} ", &name);
                 }

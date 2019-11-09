@@ -3,6 +3,8 @@ use std::io::{BufReader, BufRead};
 use std::collections::HashMap;
 use indexmap::IndexMap;
 
+pub type Duration = u128;
+
 #[derive(Debug)]
 pub struct Event {
     pub name: String
@@ -16,7 +18,7 @@ impl Event {
 
 #[derive(Debug)]
 pub struct Sequence {
-    pub events: IndexMap<u128, Event>,
+    pub events: IndexMap<u128, Vec<Event>>,
     pub length: u128
 }
 
@@ -24,82 +26,17 @@ impl Sequence {
     pub fn new () -> Sequence {
         Sequence { events: IndexMap::new(), length: 0 }
     }
-}
 
-pub fn load (reader: BufReader<File>) -> (u128, HashMap<String, Sequence>, Vec<String>) {
-    let grid: u128 = 234;
-    let mut instrument: Option<String> = None;
-    let mut sequences: HashMap<String, Sequence> = HashMap::new();
-    let mut playing: Vec<String> = Vec::new();
-    for (_index, result) in reader.lines().enumerate() {
-        let raw = result.expect("could not read line");
-        let line = raw.trim_end();
-        match &instrument {
+    pub fn add (&mut self, index: u128, event: &str) {
+        match self.events.get_mut(&index) {
+            Some(events) => {
+                events.push(Event::new(event.to_string()))
+            }
             None => {
-                match line.chars().next() {
-                    None => continue,
-                    Some(char) => {
-                        if char == ' ' {
-                            panic!("E001")
-                        } else if char == '>' {
-                            playing.push(line[1..].to_string());
-                        } else {
-                            instrument = Some(line.to_string())
-                        }
-                    }
-                }
-            },
-            Some(_) => {
-                match line.chars().next() {
-                    None => instrument = None,
-                    Some(char) => {
-                        if char == ' ' {
-                            let inst = instrument.as_ref().unwrap();
-                            let (name, seq) = parse_line(grid, &line.trim_start());
-                            sequences.insert(format!("{}.{}", inst, name), seq);
-                        } else {
-                            instrument = Some(line.to_string())
-                        }
-                    }
-                }
+                let mut events = Vec::new();
+                events.push(Event::new(event.to_string()));
+                self.events.insert(index, events);
             }
         }
     }
-    (grid, sequences, playing)
 }
-
-fn parse_line (grid: u128, line: &str) -> (String, Sequence) {
-    let mut name = "";
-    let mut i: usize = 0;
-    let mut chars = line.chars();
-    while i < line.len() {
-        let c = chars.next();
-        match c {
-            None => break,
-            Some(c) => {
-                if c == '=' {
-                    name = &line[0..i].trim_end();
-                    break
-                }
-            },
-        }
-        i += 1;
-    }
-    let mut j: u128 = 0;
-    let mut seq = Sequence::new();
-    while i < line.len() {
-        let c = chars.next();
-        match c {
-            None => break,
-            Some(c) => if c == ' ' {
-                continue
-            } else {
-                seq.events.insert(j, Event::new(c.to_string()));
-                j += grid;
-            }
-        }
-    }
-    seq.length = j + grid;
-    (name.to_string(), seq)
-}
-
