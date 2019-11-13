@@ -4,27 +4,25 @@ Separator  = _{ WHITESPACE | NEWLINE }
 Document    = { SOI ~ Declaration* ~ EOI }
 Declaration = { Definition | Seq | NamedSeq }
 
-Definition = { Identifier ~ "=" ~ Expression }
-Identifier = { (LETTER | NUMBER | "_")+ }
-Number     = { NUMBER+ }
-Expression = ${ "(" ~ Token* ~ (Separator+ ~ Token)* ~ ")" }
-Path       = { "/" ~ Identifier ~ ("/" ~ Identifier)* ~ "/"? }
-Token      = { Identifier | Path }
+Definition = { Word ~ "=" ~ Expression }
+Expression = { "(" ~ ExprToken* ~ (Separator+ ~ ExprToken)* ~ ")" }
+Word       = ${ (LETTER | NUMBER | "_" | ".")+ }
+ExprToken  = { Word | Path }
+Path       = { "/" ~ Word ~ ("/" ~ Word)* ~ "/"? }
 
-NamedSeq   = { Identifier ~ ":" ~ Seq }
+NamedSeq   = { Word ~ ":" ~ Seq }
 Seq        = ${ SeqHead ~ SeqBody? ~ SeqTail }
 
 SeqHead    = { "[" ~ Separator* ~ Duration? ~ Separator* }
-Duration   = ${ Number ~ ";" ~ Separator? }
+Duration   = ${ NUMBER+ ~ ";" ~ Separator? }
 
 SeqBody    = ${ Step ~ (Separator+ ~ Step)* }
 Step       = { Rest | Hit }
 Rest       = { "." }
-Hit        = { Identifier ~ (And ~ Identifier)* }
+Hit        = { Word ~ (And ~ Word)* }
 And        = _{ Separator* ~ "&" ~ Separator* }
 
 SeqTail    = ${ Separator * ~ "]" ~ SeqEnder* }
 SeqEnder   = { Repeats | Divide }
-Repeats    = ${ "*" ~ Number }
-Divide     = ${ "/" ~ Number }
-
+Repeats    = ${ "*" ~ NUMBER+ }
+Divide     = ${ "/" ~ NUMBER+ }

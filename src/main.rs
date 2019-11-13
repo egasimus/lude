@@ -1,14 +1,18 @@
+mod model;
+mod parser;
+mod sequencer;
+mod sampler;
+
 extern crate pest;
 #[macro_use] extern crate pest_derive;
+#[macro_use] extern crate debug_stub_derive;
 
 use std::env;
 use std::process::exit;
 use std::fs::read_to_string;
 
-mod model;
-mod player;
-mod parser;
-use crate::player::Player;
+use crate::sequencer::Sequencer;
+use crate::sampler::Sampler;
 use crate::parser::parse;
 
 fn main() {
@@ -18,8 +22,10 @@ fn main() {
     let source = read_to_string(filename).expect("cannot read file");
     let parsed = parse(&source);
     println!("{:#?}", &parsed);
-    let mut player = Player::new(parsed);
-    player.play();
+    let mut sampler = Sampler::new();
+    sampler.load_from_document(&parsed);
+    let mut sequencer = Sequencer::new(parsed, sampler);
+    sequencer.play();
     /*let file = File::open(filename}.unwrap();
     let reader = BufReader::new(file);
     let (grid, sequences, playing) = load(reader);

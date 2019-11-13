@@ -1,24 +1,26 @@
 use std::collections::HashMap;
 use std::time::Instant;
 use crate::parser::Document;
-use crate::model::Event;
+use crate::sampler::Sampler;
 
 #[derive(Debug)]
-pub struct Player {
+pub struct Sequencer {
     grid_usec: u128,
     document: Document,
+    sampler: Sampler,
     started: Option<Instant>,
     last_step: Option<u128>
 }
 
-impl Player {
+impl Sequencer {
 
-    pub fn new (document: Document) -> Player {
-        Player {
+    pub fn new (document: Document, sampler: Sampler) -> Sequencer {
+        Sequencer {
             grid_usec: 234000,
             started:   None,
             last_step: None,
-            document
+            document,
+            sampler,
         }
     }
 
@@ -61,6 +63,7 @@ impl Player {
             None => {},
             Some(s) => {
                 for event in s {
+                    self.sampler.play(event.name.as_str());
                     print!("{:#?}", &event.name);
                 }
             }

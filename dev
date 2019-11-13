@@ -1,9 +1,32 @@
-#!/home/demo/Repos/jam/belt/result/bin/belt
+#!/usr/bin/env bash
 
-test:
+set -ae
+
+build () {
+ cargo build
+}
+
+tests () {
+ ./target/debug/jam-seqs ./examples/03_minimal.seq
+}
+
+iterate () {
  #!/bin/sh
- ./result/bin/jam-seqs ./example.seq
+ ./dev build && ./dev test
+}
 
-build:
- #!/usr/bin/env bash
+build-nix () {
  time nix-build -E 'with import <nixpkgs> {}; callPackage ./default.nix {}' $@
+}
+
+test-nix () {
+ ./result/bin/jam-seqs ./examples/03_minimal.seq
+}
+
+iterate () {
+ ./dev build && ./dev tests
+}
+
+pushd $(dirname $(realpath $0)) > /dev/null
+$@
+popd > /dev/null

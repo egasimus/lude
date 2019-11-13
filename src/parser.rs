@@ -1,16 +1,16 @@
 use std::time::Instant;
 use std::collections::HashMap;
 use pest::{Parser, RuleType, iterators::Pair};
-use crate::model::{Sequence, Duration};
+use crate::model::{Sequence, Duration, Command, Commands};
 
 #[derive(Parser)]
-#[grammar = "../grammars/default/grammar.pest"]
+#[grammar = "./grammar.pest"]
 struct DefaultParser;
 
 #[derive(Debug)]
 pub struct Document {
-    pub definitions: HashMap<String, String>,
-    pub sequences: HashMap<String, Sequence>
+    pub definitions: HashMap<String, Command>,
+    pub sequences: HashMap<String, Sequence>,
 }
 
 impl Document {
@@ -20,8 +20,8 @@ impl Document {
         Document { definitions, sequences }
     }
 
-    pub fn definition (&mut self, key: &str, val: &str) {
-        self.definitions.insert(key.to_string(), val.to_string());
+    pub fn definition (&mut self, key: &str, val: Command) {
+        self.definitions.insert(key.to_string(), val);
     }
 
     pub fn sequence (&mut self, key: &str, val: Sequence) {
@@ -34,18 +34,22 @@ pub fn parse (document: &str) -> Document {
     let mut doc = Document::new();
     let parsed = DefaultParser::parse(Rule::Document, document)
         .unwrap_or_else(|e| panic!("{}", e)).next().unwrap();
+    println!("{:#?}", &parsed);
     for declaration in parsed.into_inner() {
         for inner in declaration.into_inner() {
             match inner.as_rule() {
                 Rule::Definition => {
-                    let (key, val) = parse_definition(inner);
+                    let (key, val) = parse_definition::<Rule>(inner);
                     doc.definition(key, val);
                 },
                 Rule::NamedSeq => {
                     let (name, parsed) = parse_named_seq::<Rule>(inner);
                     let (seq, dur, rep, div) = parsed;
-                    doc.definition(&name, &format!("(play {})", &name));
                     doc.sequence(&name, seq);
+                    doc.definition(
+                        &name,
+                        Command::new(Commands::Sequence, vec![name.to_string()])
+                    );
                 },
                 Rule::Seq => {
                     let (seq, dur, rep, div) = parse_seq::<Rule>(inner);
@@ -60,11 +64,27 @@ pub fn parse (document: &str) -> Document {
     doc
 }
 
-fn parse_definition<T: RuleType> (pair: Pair<T>) -> (&str, &str) {
+fn parse_definition<T: RuleType> (pair: Pair<Rule>) -> (&str, Command) {
     let mut definition = pair.into_inner();
     //println!("Assign {:#?}", definition);
     let key = definition.next().unwrap().as_str().trim();
-    let val = definition.next().unwrap().as_str().trim();
+    let val_body = definition.next().unwrap();
+    let val = match &val_body.as_rule() {
+        Rule::Expression => {
+            let mut val_tokens = val_body.into_inner();
+            let val_head = val_tokens.next().unwrap();
+            let val_rule = &val_head.as_rule();
+            println!("->{:#?} {:#?}", &val_head, &val_rule);
+            match val_head.as_str() {
+                "sound" => Command::new(
+                    Commands::Sound,
+                    val_tokens.map(|t| t.as_str().to_string()).collect()
+                ),
+                _ => Command::nop()
+            }
+        },
+        _ => Command::nop(),
+    };
     (key, val)
 }
 
@@ -90,7 +110,6 @@ fn parse_seq<T: RuleType> (pair: Pair<Rule>) -> ParsedSeq {
 fn parse_seq_head<T: RuleType> (head: Pair<Rule>) -> Duration {
     //println!("[ {:#?}", &start);
     for item in head.into_inner() {
-        println!("[[ {:#?}", &item);
     }
     0
 }
@@ -99,7 +118,6 @@ fn parse_seq_tail<T: RuleType> (tail: Pair<Rule>) -> (u128, u128) {
     let mut rep = 0;
     let mut div = 0;
     for item in tail.into_inner() {
-        println!("[[ {:#?}", &item);
     }
     (rep, div)
 }
