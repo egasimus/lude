@@ -1,6 +1,7 @@
 mod model;
 mod parser;
 mod sequencer;
+mod engine;
 mod sampler;
 
 extern crate pest;
@@ -14,6 +15,7 @@ use std::fs::read_to_string;
 use crate::sequencer::Sequencer;
 use crate::sampler::Sampler;
 use crate::parser::parse;
+use crate::engine::start_engine;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -25,12 +27,5 @@ fn main() {
     let mut sampler = Sampler::new();
     sampler.load_from_document(&parsed);
     let mut sequencer = Sequencer::new(parsed, sampler);
-    sequencer.play();
-    /*let file = File::open(filename}.unwrap();
-    let reader = BufReader::new(file);
-    let (grid, sequences, playing) = load(reader);
-    let grid_usec = grid * 1000;
-    let mut player = Player { grid_usec, sequences, playing };
-    println!("{:?}", player);
-    player.play();*/
+    start_engine(sequencer);
 }

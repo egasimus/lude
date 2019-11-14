@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::time::Instant;
 use crate::parser::Document;
 use crate::sampler::Sampler;

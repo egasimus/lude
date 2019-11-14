@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::{parser::Document, model::{Command, Commands}};
+use crate::{parser::Document, model::Commands};
 use ears::{Sound as EarsSound, AudioController};
 
 #[derive(DebugStub)]

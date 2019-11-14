@@ -44,7 +44,7 @@ pub fn parse (document: &str) -> Document {
                 },
                 Rule::NamedSeq => {
                     let (name, parsed) = parse_named_seq::<Rule>(inner);
-                    let (seq, dur, rep, div) = parsed;
+                    let (seq, _dur, _rep, _div) = parsed;
                     doc.sequence(&name, seq);
                     doc.definition(
                         &name,
@@ -52,7 +52,7 @@ pub fn parse (document: &str) -> Document {
                     );
                 },
                 Rule::Seq => {
-                    let (seq, dur, rep, div) = parse_seq::<Rule>(inner);
+                    let (seq, _dur, _rep, _div) = parse_seq::<Rule>(inner);
                     doc.sequence(&"<main>".to_string(), seq);
                 },
                 Rule::EOI => {},
@@ -107,17 +107,19 @@ fn parse_seq<T: RuleType> (pair: Pair<Rule>) -> ParsedSeq {
     (seq, dur, rep, div)
 }
 
-fn parse_seq_head<T: RuleType> (head: Pair<Rule>) -> Duration {
+fn parse_seq_head<T: RuleType> (_head: Pair<Rule>) -> Duration {
     //println!("[ {:#?}", &start);
-    for item in head.into_inner() {
-    }
+    //for item in head.into_inner() {
+    //}
     0
 }
 
 fn parse_seq_tail<T: RuleType> (tail: Pair<Rule>) -> (u128, u128) {
     let mut rep = 0;
     let mut div = 0;
-    for item in tail.into_inner() {
+    for _item in tail.into_inner() {
+        rep = 0;
+        div = 0;
     }
     (rep, div)
 }
@@ -143,5 +145,5 @@ fn parse_seq_body<T: RuleType> (body: Pair<Rule>) -> Sequence {
     seq
 }
 
-fn parse_step<T: RuleType> (pair: Pair<Rule>) {
+fn parse_step<T: RuleType> (_pair: Pair<Rule>) {
 }

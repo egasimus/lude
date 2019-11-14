@@ -5,7 +5,7 @@ stdenv.mkDerivation {
     rustc cargo pkgconfig
   ];
   buildInputs = with pkgs; [
-    openal libsndfile
+    openal libsndfile libjack2
   ];
   RUST_BACKTRACE = 1;
 }
