@@ -1,5 +1,10 @@
+pub mod parser;
+pub mod sequence;
+
+pub use self::sequence::Commands;
+
 use std::time::Instant;
-use crate::parser::Document;
+use self::parser::Document;
 use crate::sampler::Sampler;
 
 #[derive(Debug)]
@@ -62,7 +67,7 @@ impl Sequencer {
             None => {},
             Some(s) => {
                 for event in s {
-                    self.sampler.play(event.name.as_str());
+                    self.sampler.play(event.name.as_str(), None);
                     print!("{:#?}", &event.name);
                 }
             }

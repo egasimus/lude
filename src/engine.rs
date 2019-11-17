@@ -1,13 +1,13 @@
+use crate::sampler::Sampler;
 use crate::sequencer::Sequencer;
 
 use jack::{
-    Port, AudioOut, RingBuffer,
-    ClientOptions, Client, AsyncClient, ClosureProcessHandler,
-    ProcessHandler, Control, ProcessScope,
-    NotificationHandler, ClientStatus, Frames, PortId, LatencyType
+    AudioOut,
+    ClientOptions, Client, ClosureProcessHandler,
+    Control, ProcessScope,
 };
 
-pub fn start_engine (mut sequencer: Sequencer) {
+pub fn start_engine (mut sampler: Sampler, mut sequencer: Sequencer) {
 
     let options = ClientOptions::empty();
     let (client, status) = Client::new("sequence", options)

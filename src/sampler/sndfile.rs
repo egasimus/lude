@@ -38,7 +38,6 @@ use std::ptr;
 use std::ffi::CString;
 use std::ffi::CStr;
 use std::ops::BitOr;
-use std::i32::*;
 use std::intrinsics::transmute;
 
 #[doc(hidden)]

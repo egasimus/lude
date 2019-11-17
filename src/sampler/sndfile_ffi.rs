@@ -21,7 +21,7 @@
 
 #![allow(dead_code, non_camel_case_types)]
 
-use crate::sndfile::{SndInfo, Error};
+use crate::sampler::sndfile::{SndInfo, Error}; // TODO fix relative import
 use std::os::raw::{c_char, c_void};
 type intptr_t = isize; // hack; try to avoid libc crate
 

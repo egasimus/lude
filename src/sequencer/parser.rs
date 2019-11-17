@@ -1,10 +1,11 @@
+use std::iter::Map;
 use std::time::Instant;
 use std::collections::HashMap;
 use pest::{Parser, RuleType, iterators::Pair};
-use crate::model::{Sequence, Duration, Command, Commands};
+use super::sequence::{Sequence, Duration, Command, Commands};
 
 #[derive(Parser)]
-#[grammar = "./grammar.pest"]
+#[grammar = "./sequencer/grammar.pest"]
 struct DefaultParser;
 
 #[derive(Debug)]
@@ -26,6 +27,20 @@ impl Document {
 
     pub fn sequence (&mut self, key: &str, val: Sequence) {
         self.sequences.insert(key.to_string(), val);
+    }
+
+    pub fn get_sounds (&self) -> HashMap<String, String> {
+        let sounds = self.definitions.iter().filter_map(|(name, command)| {
+            match command.name {
+                _ => None,
+                Commands::Sound => Some((
+                    name.to_string(),
+                    command.args.get(0).unwrap().to_string()
+                ))
+            }
+        });
+        let sounds_map: HashMap<_, _> = sounds.collect();
+        sounds_map
     }
 }
 
