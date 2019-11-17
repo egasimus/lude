@@ -4,6 +4,10 @@ mod sequencer;
 mod engine;
 mod sampler;
 
+// from ears; TODO: PR to make them public
+mod sndfile;
+mod sndfile_ffi;
+
 extern crate pest;
 #[macro_use] extern crate pest_derive;
 #[macro_use] extern crate debug_stub_derive;
