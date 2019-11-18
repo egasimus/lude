@@ -1,33 +1,43 @@
 use crate::sampler::Sampler;
-use crate::sequencer::Sequencer;
+use crate::sequencer::parser::Document;
 
 use jack::{
     AudioOut,
-    ClientOptions, Client, ClosureProcessHandler,
-    Control, ProcessScope,
+    ClientOptions,
+    Client,
+    ClosureProcessHandler,
+    Control,
+    ProcessScope,
 };
 
-pub fn start_engine (mut sampler: Sampler, mut sequencer: Sequencer) {
+pub fn start_engine (
+    mut document: Document,
+    mut sampler: Sampler
+) {
 
-    let options = ClientOptions::empty();
-    let (client, status) = Client::new("sequence", options)
+    let (client, status) = Client::new("sequence", ClientOptions::empty())
         .unwrap_or_else(|e| panic!("Failed to open JACK client: {:?}", e));
+
     println!("JACK client {}, status {:?}", client.name(), status);
 
-    let output = client.register_port("output", AudioOut::default())
-        .unwrap_or_else(|e| panic!("Failed to register output port"));
+    let mut output = client.register_port("output", AudioOut::default())
+        .unwrap_or_else(|e| panic!("Failed to register output port: {:?}", e));
 
     let handler = ClosureProcessHandler::new(
-        move |_: &Client, _: &ProcessScope| {
+        move |_: &Client, scope: &ProcessScope| {
+            let cycle_times = scope.cycle_times().unwrap();
+            println!("{:#?}", cycle_times);
+            for element in output.as_mut_slice(scope) {
+                *element = 0.0;
+            }
             Control::Continue
         }
     );
 
-    let active_client = client.activate_async((), handler)
+    client.activate_async((), handler)
         .unwrap_or_else(|e| panic!("Failed to active JACK client: {:?}", e));
-    println!("Activated JACK client");
 
-    sequencer.play();
+    println!("Activated JACK client");
 
 }
 

@@ -1,8 +1,7 @@
 pub mod parser;
-pub mod sequence;
+pub mod command;
 
-pub use self::sequence::Commands;
-
+/*
 use std::time::Instant;
 use self::parser::Document;
 use crate::sampler::Sampler;
@@ -76,3 +75,4 @@ impl Sequencer {
     }
 
 }
+*/

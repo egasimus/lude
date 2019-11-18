@@ -1,8 +1,9 @@
-use std::iter::Map;
-use std::time::Instant;
-use std::collections::HashMap;
+use std::{time::Instant, collections::HashMap};
 use pest::{Parser, RuleType, iterators::Pair};
-use super::sequence::{Sequence, Duration, Command, Commands};
+use crate::timeline::{Timeline, Duration};
+use super::command::{Command, Commands};
+
+type Sequence = Timeline<String>;
 
 #[derive(Parser)]
 #[grammar = "./sequencer/grammar.pest"]
@@ -149,14 +150,14 @@ fn parse_seq_body<T: RuleType> (body: Pair<Rule>) -> Sequence {
             Rule::Rest => {},
             Rule::Hit => {
                 for hit in step_inner.into_inner() {
-                    seq.add(next, &hit.as_str());
+                    seq.add(next, hit.as_str().to_string());
                 }
             }
             _ => unreachable!()
         }
         next += 1;
     }
-    seq.length = next;
+    seq.duration = next;
     seq
 }
 
