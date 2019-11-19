@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::thread::{Builder as ThreadBuilder, JoinHandle};
 use jack::RingBuffer;
 
@@ -5,6 +6,8 @@ use super::{
     N_CUE_BUFFER_FRAMES,
     cues::CuePointManager, sndfile::{SndFile, OpenMode}
 };
+
+type Shared<T> = Arc<Mutex<T>>;
 
 #[derive(DebugStub)]
 pub struct Sound {
@@ -19,20 +22,7 @@ pub struct Sound {
     playback_state: PlaybackState,
     playback_position: usize,
     #[debug_stub="RingBuffer"]
-    playback_buffer: RingBuffer
-}
-
-#[derive(Debug)]
-pub enum LoadingState {
-    Initial,
-    Loading,
-    Done
-}
-
-#[derive(Debug)]
-pub enum PlaybackState {
-    Stopped,
-    Playing
+    playback_buffer: Shared<RingBuffer>
 }
 
 impl Sound {
@@ -42,8 +32,9 @@ impl Sound {
         let playback_thread = ThreadBuilder::new()
             .name("playback reader".into())
             .spawn(|| {}).unwrap();
-        let playback_buffer = RingBuffer::new(N_CUE_BUFFER_FRAMES)
-            .unwrap_or_else(|_| panic!("failed to allocate ringbuffer: {}"));
+        let playback_buffer = Arc::new(Mutex::new(
+            RingBuffer::new(N_CUE_BUFFER_FRAMES).unwrap_or_else(
+                |_| panic!("failed to allocate ringbuffer: {}"))));
 
         Sound {
             path: path.to_string(),
@@ -85,6 +76,28 @@ impl Sound {
     pub fn stop (&mut self) {
         self.playback_state = PlaybackState::Stopped;
     }
+
+    pub fn is_playing (&mut self) -> bool {
+        match self.playback_state {
+            PlaybackState::Playing => true,
+            _ => false
+        }
+    }
+
+    pub fn read_advance (&mut self, frame_index: u32) -> f32 { 0.0 }
+}
+
+#[derive(Debug)]
+pub enum LoadingState {
+    Initial,
+    Loading,
+    Done
+}
+
+#[derive(Debug)]
+pub enum PlaybackState {
+    Stopped,
+    Playing
 }
 
 /*

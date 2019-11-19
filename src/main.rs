@@ -13,7 +13,7 @@ use std::fs::read_to_string;
 
 use self::sequencer::parser::parse;
 use self::sampler::Sampler;
-use self::engine::start_engine;
+use self::engine::start_jack_engine;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -26,5 +26,5 @@ fn main() {
     for (name, path) in document.get_sounds() {
         sampler.load(&name, &path);
     }
-    start_engine(document, sampler);
+    start_jack_engine(document, sampler);
 }

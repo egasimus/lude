@@ -4,29 +4,29 @@ pub mod sndfile;
 mod sndfile_ffi;
 
 use std::collections::HashMap;
-pub use self::sound::Sound;
+pub use self::sound::{Sound, PlaybackState};
 
 pub const N_CUE_BUFFER_FRAMES: usize = 1 << 14; // 16384
+type SoundMap = HashMap<String, Sound>;
 
 #[derive(Debug)]
 pub struct Sampler {
-    samples: HashMap<String, Sound>
+    sounds: SoundMap
 }
-
 
 impl Sampler {
 
     pub fn new () -> Sampler {
-        Sampler { samples: HashMap::new() }
+        Sampler { sounds: HashMap::new() }
     }
 
     pub fn load (&mut self, name: &str, path: &str) {
-        self.samples.insert(name.to_string(), Sound::new(&path));
+        self.sounds.insert(name.to_string(), Sound::new(&path));
     }
 
-    pub fn play (&mut self, sample: &str, cue: Option<&str>) {
-        match self.samples.get_mut(sample) {
-            None => println!("no command {}", &sample),
+    pub fn play (&mut self, sound: &str, cue: Option<&str>) {
+        match self.sounds.get_mut(sound) {
+            None => println!("no command {}", &sound),
             Some(sound) => match cue {
                 None => sound.play_from_start(),
                 Some(cue) => sound.play_from_cue(cue)

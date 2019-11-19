@@ -1,74 +1,36 @@
-use std::{time::Instant, collections::HashMap};
+use std::time::Instant;
 use pest::{Parser, RuleType, iterators::Pair};
-use crate::timeline::{Timeline, Duration};
-use super::command::{Command, Commands};
-
-type Sequence = Timeline<String>;
+use crate::timeline::Moment;
+use super::{document::{Document, Sequence}, command::{Command, Commands}};
 
 #[derive(Parser)]
 #[grammar = "./sequencer/grammar.pest"]
 struct DefaultParser;
 
-#[derive(Debug)]
-pub struct Document {
-    pub definitions: HashMap<String, Command>,
-    pub sequences: HashMap<String, Sequence>,
-}
-
-impl Document {
-    pub fn new () -> Document {
-        let definitions = HashMap::new();
-        let sequences = HashMap::new();
-        Document { definitions, sequences }
-    }
-
-    pub fn definition (&mut self, key: &str, val: Command) {
-        self.definitions.insert(key.to_string(), val);
-    }
-
-    pub fn sequence (&mut self, key: &str, val: Sequence) {
-        self.sequences.insert(key.to_string(), val);
-    }
-
-    pub fn get_sounds (&self) -> HashMap<String, String> {
-        let sounds = self.definitions.iter().filter_map(|(name, command)| {
-            match command.name {
-                _ => None,
-                Commands::Sound => Some((
-                    name.to_string(),
-                    command.args.get(0).unwrap().to_string()
-                ))
-            }
-        });
-        let sounds_map: HashMap<_, _> = sounds.collect();
-        sounds_map
-    }
-}
-
 pub fn parse (document: &str) -> Document {
-    let parse_headed = Instant::now();
+    let parse_start = Instant::now();
     let mut doc = Document::new();
     let parsed = DefaultParser::parse(Rule::Document, document)
         .unwrap_or_else(|e| panic!("{}", e)).next().unwrap();
-    println!("{:#?}", &parsed);
+    //println!("{:#?}", &parsed);
     for declaration in parsed.into_inner() {
         for inner in declaration.into_inner() {
             match inner.as_rule() {
                 Rule::Definition => {
                     let (key, val) = parse_definition::<Rule>(inner);
-                    doc.definition(key, val);
+                    doc.define(key, val);
                 },
                 Rule::NamedSeq => {
                     let (name, parsed) = parse_named_seq::<Rule>(inner);
-                    let (seq, _dur, _rep, _div) = parsed;
+                    let (seq, _start, _dur, _rep, _div) = parsed;
                     doc.sequence(&name, seq);
-                    doc.definition(
+                    doc.define(
                         &name,
                         Command::new(Commands::Sequence, vec![name.to_string()])
                     );
                 },
                 Rule::Seq => {
-                    let (seq, _dur, _rep, _div) = parse_seq::<Rule>(inner);
+                    let (seq, _start, _dur, _rep, _div) = parse_seq::<Rule>(inner);
                     doc.sequence(&"<main>".to_string(), seq);
                 },
                 Rule::EOI => {},
@@ -76,7 +38,7 @@ pub fn parse (document: &str) -> Document {
             }
         }
     };
-    println!("Parsed in {}usec", parse_headed.elapsed().as_micros());
+    println!("Parsed in {}usec", parse_start.elapsed().as_micros());
     doc
 }
 
@@ -90,7 +52,7 @@ fn parse_definition<T: RuleType> (pair: Pair<Rule>) -> (&str, Command) {
             let mut val_tokens = val_body.into_inner();
             let val_head = val_tokens.next().unwrap();
             let val_rule = &val_head.as_rule();
-            println!("->{:#?} {:#?}", &val_head, &val_rule);
+            //println!("->{:#?} {:#?}", &val_head, &val_rule);
             match val_head.as_str() {
                 "sound" => Command::new(
                     Commands::Sound,
@@ -104,26 +66,27 @@ fn parse_definition<T: RuleType> (pair: Pair<Rule>) -> (&str, Command) {
     (key, val)
 }
 
-type ParsedSeq = (Sequence, Duration, u128, u128);
+type ParsedSeq = (Sequence, Moment, Moment, u128, u128);
 
 fn parse_named_seq<T: RuleType> (pair: Pair<Rule>) -> (String, ParsedSeq) {
     let mut inner = pair.into_inner();
     let name = inner.next().unwrap().as_str();
     let next = inner.next().unwrap();
-    println!("{:#?}", &next);
+    //println!("{:#?}", &next);
     let seq = parse_seq::<Rule>(next);
     (name.to_string(), seq)
 }
 
 fn parse_seq<T: RuleType> (pair: Pair<Rule>) -> ParsedSeq {
     let mut inner = pair.into_inner();
-    let dur = parse_seq_head::<Rule>(inner.next().unwrap());
+    let start = 0;
+    let end = parse_seq_head::<Rule>(inner.next().unwrap());
     let seq = parse_seq_body::<Rule>(inner.next().unwrap());
     let (rep, div) = parse_seq_tail::<Rule>(inner.next().unwrap());
-    (seq, dur, rep, div)
+    (seq, start, end, rep, div)
 }
 
-fn parse_seq_head<T: RuleType> (_head: Pair<Rule>) -> Duration {
+fn parse_seq_head<T: RuleType> (_head: Pair<Rule>) -> Moment {
     //println!("[ {:#?}", &start);
     //for item in head.into_inner() {
     //}
@@ -157,7 +120,7 @@ fn parse_seq_body<T: RuleType> (body: Pair<Rule>) -> Sequence {
         }
         next += 1;
     }
-    seq.duration = next;
+    seq.end = next;
     seq
 }
 

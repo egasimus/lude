@@ -7,7 +7,7 @@ build () {
 }
 
 tests () {
- ./target/debug/jam-seqs ./examples/03_minimal.seq
+ ./target/debug/sequence_rs ./examples/03_minimal.seq
 }
 
 iterate () {

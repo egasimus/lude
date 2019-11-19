@@ -1,5 +1,8 @@
 pub mod parser;
 pub mod command;
+pub mod document;
+
+pub use document::Document;
 
 /*
 use std::time::Instant;
