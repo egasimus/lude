@@ -1,3 +1,3 @@
-k = (sound /home/demo/Repos/jam/sequence/data/kick.wav)
-c = (sound /home/demo/Repos/jam/sequence/data/snare.wav)
+k = sound:/home/demo/Repos/jam/sequence/data/kick.wav
+c = sound:/home/demo/Repos/jam/sequence/data/snare.wav
 [16; k . k&c . k k k&c . k . k&c k . k k&c .]

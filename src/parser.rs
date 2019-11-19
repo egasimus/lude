@@ -1,10 +1,10 @@
 use std::time::Instant;
 use pest::{Parser, RuleType, iterators::Pair};
 use crate::timeline::Moment;
-use super::{document::{Document, Sequence}, command::{Command, Commands}};
+use super::{Document, Sequence, Command, Commands};
 
 #[derive(Parser)]
-#[grammar = "./sequencer/grammar.pest"]
+#[grammar = "./grammar.pest"]
 struct DefaultParser;
 
 pub fn parse (document: &str) -> Document {
@@ -18,20 +18,20 @@ pub fn parse (document: &str) -> Document {
             match inner.as_rule() {
                 Rule::Definition => {
                     let (key, val) = parse_definition::<Rule>(inner);
-                    doc.define(key, val);
+                    doc.add_definition(key, val);
                 },
                 Rule::NamedSeq => {
                     let (name, parsed) = parse_named_seq::<Rule>(inner);
                     let (seq, _start, _dur, _rep, _div) = parsed;
-                    doc.sequence(&name, seq);
-                    doc.define(
+                    doc.add_sequence(&name, seq);
+                    doc.add_definition(
                         &name,
                         Command::new(Commands::Sequence, vec![name.to_string()])
                     );
                 },
                 Rule::Seq => {
                     let (seq, _start, _dur, _rep, _div) = parse_seq::<Rule>(inner);
-                    doc.sequence(&"<main>".to_string(), seq);
+                    doc.add_sequence(&"<main>".to_string(), seq);
                 },
                 Rule::EOI => {},
                 _ => unreachable!()

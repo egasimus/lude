@@ -1,7 +1,14 @@
-mod sequencer;
-mod sampler;
-mod engine;
 mod timeline;
+
+mod document;
+pub use document::{Document, Sequence, Commands, Command};
+
+mod parser;
+pub use parser::parse;
+
+mod sampler;
+mod engines;
+use self::engines::start_jack_engine;
 
 extern crate pest;
 #[macro_use] extern crate pest_derive;
@@ -11,9 +18,6 @@ use std::env;
 use std::process::exit;
 use std::fs::read_to_string;
 
-use self::sequencer::parser::parse;
-use self::sampler::Sampler;
-use self::engine::start_jack_engine;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -22,9 +26,9 @@ fn main() {
     let source = read_to_string(filename).expect("cannot read file");
     let document = parse(&source);
     println!("{:#?}", &document);
-    let mut sampler = Sampler::new();
+    /*let mut sampler = Sampler::new();
     for (name, path) in document.get_sounds() {
         sampler.load(&name, &path);
-    }
-    start_jack_engine(document, sampler);
+    }*/
+    start_jack_engine(document);
 }

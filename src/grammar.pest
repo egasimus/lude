@@ -4,13 +4,15 @@ Separator  = _{ WHITESPACE | NEWLINE }
 Document    = { SOI ~ Declaration* ~ EOI }
 Declaration = { Definition | Seq | NamedSeq }
 
-Definition = { Word ~ "=" ~ Expression }
+Definition = { Term ~ "=" ~ (Expression | Resource) }
 Expression = { "(" ~ ExprToken* ~ (Separator+ ~ ExprToken)* ~ ")" }
-Word       = ${ (LETTER | NUMBER | "_" | ".")+ }
-ExprToken  = { Word | Path }
-Path       = { "/" ~ Word ~ ("/" ~ Word)* ~ "/"? }
+ExprToken  = { Term | Resource }
+Term       = ${ (LETTER | NUMBER | "_" | ".")+ }
+Resource   = { Protocol ~ ":" ~ Path }
+Protocol   = { "sound" }
+Path       = { ("/"+ | "./") ~ Term ~ ("/" ~ Term)* ~ "/"? }
 
-NamedSeq   = { Word ~ ":" ~ Seq }
+NamedSeq   = { Term ~ ":" ~ Seq }
 Seq        = ${ SeqHead ~ SeqBody? ~ SeqTail }
 
 SeqHead    = { "[" ~ Separator* ~ Duration? ~ Separator* }
@@ -19,7 +21,7 @@ Duration   = ${ NUMBER+ ~ ";" ~ Separator? }
 SeqBody    = ${ Step ~ (Separator+ ~ Step)* }
 Step       = { Rest | Hit }
 Rest       = { "." }
-Hit        = { Word ~ (And ~ Word)* }
+Hit        = { Term ~ (And ~ Term)* }
 And        = _{ Separator* ~ "&" ~ Separator* }
 
 SeqTail    = ${ Separator * ~ "]" ~ SeqEnder* }

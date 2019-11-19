@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
-use crate::sampler::Sampler;
-use crate::sequencer::Document;
+use crate::Document;
 
 use jack::{
     AudioOut,
@@ -12,10 +11,7 @@ use jack::{
     ProcessScope,
 };
 
-pub fn start_jack_engine (
-    mut document: Document,
-    mut sampler: Sampler
-) {
+pub fn start_jack_engine (mut document: Document) {
 
     let (client, status) = Client::new("sequence", ClientOptions::empty())
         .unwrap_or_else(|e| panic!("Failed to open JACK client: {:?}", e));
