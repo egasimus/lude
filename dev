@@ -7,12 +7,12 @@ build () {
 }
 
 tests () {
- ./target/debug/sequence_rs ./examples/03_minimal.seq
+ ./target/debug/sequence_rs ./examples/04_just_sound.seq > /tmp/test-result
 }
 
 iterate () {
  #!/bin/sh
- ./dev build && ./dev test
+ ./dev build && ./dev tests
 }
 
 build-nix () {

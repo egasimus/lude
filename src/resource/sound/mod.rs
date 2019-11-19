@@ -26,7 +26,7 @@ impl Sampler {
 
     pub fn play (&mut self, sound: &str, cue: Option<&str>) {
         match self.sounds.get_mut(sound) {
-            None => println!("no command {}", &sound),
+            None => eprintln!("no command {}", &sound),
             Some(sound) => match cue {
                 None => sound.play_from_start(),
                 Some(cue) => sound.play_from_cue(cue)

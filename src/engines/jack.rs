@@ -15,7 +15,7 @@ pub fn start_jack_engine (mut document: Document) {
 
     let (client, status) = Client::new("sequence", ClientOptions::empty())
         .unwrap_or_else(|e| panic!("Failed to open JACK client: {:?}", e));
-    println!("JACK client {}, status {:?}", client.name(), status);
+    eprintln!("JACK client {}, status {:?}", client.name(), status);
     let mut output = client.register_port("output", AudioOut::default())
         .unwrap_or_else(|e| panic!("Failed to register output port: {:?}", e));
 
@@ -56,7 +56,7 @@ pub fn start_jack_engine (mut document: Document) {
         })
     ).unwrap_or_else(|e| panic!("Failed to active JACK client: {:?}", e));
 
-    println!("client active: {:#?}", &async_client);
+    eprintln!("client active: {:#?}", &async_client);
 
     // main loop: waits for data to be requested.
     // generates it based on timing from jack thread,
@@ -69,7 +69,7 @@ pub fn start_jack_engine (mut document: Document) {
         for i in 0..1024 {
             output_data.push(i as f32 / 1024 as f32);
         }
-        //println!("tick {} {} {}", start, size, skip);
+        //eprintln!("tick {} {} {}", start, size, skip);
         let arc = Arc::new(output_data);
         res_tx.send(arc);
     }
@@ -146,16 +146,16 @@ impl ProcessHandler for Engine {
 
             /*
             let cycle_times = scope.cycle_times().unwrap();
-            println!("cycle {:#?}", &cycle_times);
-            println!("d current_frames {}", cycle_times.current_frames - current_frames);
+            eprintln!("cycle {:#?}", &cycle_times);
+            eprintln!("d current_frames {}", cycle_times.current_frames - current_frames);
             current_frames = cycle_times.current_frames;
-            println!("d current_usecs {}", cycle_times.current_usecs - current_usecs);
+            eprintln!("d current_usecs {}", cycle_times.current_usecs - current_usecs);
             current_usecs = cycle_times.current_usecs;
-            println!("d next_usecs {}", cycle_times.next_usecs - next_usecs);
+            eprintln!("d next_usecs {}", cycle_times.next_usecs - next_usecs);
             next_usecs = cycle_times.next_usecs;
-            println!("d period_usecs {}", cycle_times.period_usecs - period_usecs);
+            eprintln!("d period_usecs {}", cycle_times.period_usecs - period_usecs);
             period_usecs = cycle_times.period_usecs;
 
             let d_usecs = next_usecs - current_usecs;
-            println!("d usecs {}", d_usecs);*/
+            eprintln!("d usecs {}", d_usecs);*/
 

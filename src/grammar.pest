@@ -1,16 +1,16 @@
 WHITESPACE = _{ " " | NEWLINE }
 Separator  = _{ WHITESPACE | NEWLINE }
 
-Document    = { SOI ~ Declaration* ~ EOI }
-Declaration = { Definition | Seq | NamedSeq }
+Document   = { SOI ~ Statement* ~ EOI }
+Statement  = { Definition | Seq | NamedSeq }
 
-Definition = { Term ~ "=" ~ (Expression | Resource) }
-Expression = { "(" ~ ExprToken* ~ (Separator+ ~ ExprToken)* ~ ")" }
-ExprToken  = { Term | Resource }
-Term       = ${ (LETTER | NUMBER | "_" | ".")+ }
+Definition = { Term ~ "=" ~ (Resource | Expression) }
 Resource   = { Protocol ~ ":" ~ Path }
 Protocol   = { "sound" }
 Path       = { ("/"+ | "./") ~ Term ~ ("/" ~ Term)* ~ "/"? }
+Expression = { "(" ~ ExprToken* ~ (Separator+ ~ ExprToken)* ~ ")" }
+ExprToken  = { Term | Resource }
+Term       = ${ (LETTER | NUMBER | "_" | ".")+ }
 
 NamedSeq   = { Term ~ ":" ~ Seq }
 Seq        = ${ SeqHead ~ SeqBody? ~ SeqTail }

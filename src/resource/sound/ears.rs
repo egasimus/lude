@@ -33,7 +33,7 @@ impl Sampler {
 
     pub fn play (&mut self, name: &str) {
         match self.samples.get_mut(name) {
-            None => println!("no command {}", &name),
+            None => eprintln!("no command {}", &name),
             Some(sound) => sound.sound.play()
         }
     }
@@ -79,13 +79,13 @@ impl Deck {
     }
 
     pub fn load (&mut self, path: &str) {
-        println!("load {}", path.to_string());
+        eprintln!("load {}", path.to_string());
         self.source = Some(path.to_string());
         self.sound  = Some(Sound::new(path).expect("failed to load sound"));
     }
 
     pub fn play (&mut self, from: &str) {
-        println!("play from {}", from.to_string());
+        eprintln!("play from {}", from.to_string());
         let mut sound = self.sound.as_mut().expect("wat");
         sound.play()
     }

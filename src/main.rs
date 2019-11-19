@@ -1,12 +1,11 @@
 mod timeline;
 
 mod document;
-pub use document::{Document, Sequence, Commands, Command};
+pub use document::Document;
 
 mod parser;
 pub use parser::parse;
 
-mod sampler;
 mod engines;
 use self::engines::start_jack_engine;
 
@@ -24,11 +23,8 @@ fn main() {
     if args.len() == 1 { exit(1); }
     let filename = &args[1];
     let source = read_to_string(filename).expect("cannot read file");
-    let document = parse(&source);
-    println!("{:#?}", &document);
-    /*let mut sampler = Sampler::new();
-    for (name, path) in document.get_sounds() {
-        sampler.load(&name, &path);
-    }*/
+    let mut document = parse(&source);
+    document.load_resources();
+    eprintln!("{:#?}", &document);
     start_jack_engine(document);
 }

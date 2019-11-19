@@ -1,49 +1,10 @@
 use std::collections::HashMap;
-use crate::{sampler::Sampler, timeline::Timeline};
-
-type Identifier = String;
-
-#[derive(Debug)]
-enum Schema {
-    Sound,
-    Sequence
-}
-
-type Path = String;
-
-#[derive(Debug)]
-pub struct Resource {
-    schema: Schema,
-    path:   Path
-}
-
-type Resources = HashMap<Identifier, Resource>;
-
-#[derive(Debug)]
-pub enum Commands {
-    NOP,
-    Sound,
-    Sequence
-}
-
-type CommandArg = String;
-
-#[derive(Debug)]
-pub struct Command {
-    pub name: Commands,
-    pub args: Vec<CommandArg>
-}
-
-type Definitions = HashMap<Identifier, Command>;
-
-pub type Sequence = Timeline<Identifier>;
-
-type Sequences = HashMap<Identifier, Sequence>;
+use crate::{timeline::Timeline, resource::{Sampler, Sequencer}};
 
 #[derive(Debug)]
 pub struct Document {
     sampler: Sampler,
-    resources: Resources,
+    sequencer: Sequencer,
     definitions: Definitions,
     sequences: Sequences,
 }
@@ -67,6 +28,12 @@ impl Document {
     pub fn add_sequence (&mut self, key: &str, val: Sequence) {
         self.sequences.insert(key.to_string(), val);
     }
+    
+    pub fn load_resources (&mut self) {
+        for (name, path) in self.get_sounds() {
+            self.sampler.load(&name, &path);
+        }
+    }
 
     pub fn get_sounds (&self) -> HashMap<String, String> {
         let sounds = self.definitions.iter().filter_map(|(name, command)| {
@@ -82,7 +49,7 @@ impl Document {
         sounds_map
     }
 
-    pub fn get_frame (&self, start: u32, size: u32) -> Vec<Vec<(String, usize)>> {
+    pub fn get_frame (&self, start: u32, size: u32) -> (Vec<Vec<(String, usize)>>, bool) {
         // ok so how will this work...
         // each sequence is split into a number of equal steps
         // that have length of at least 1 sample
@@ -98,24 +65,8 @@ impl Document {
         // start with main sequence and recursively descend into
         // child sequences/sounds ... a sound is just a sequence of samples
         // how will sounds be resampled?
-        Vec::new()
+        (Vec::new(), false)
     }
-}
-
-impl Command {
-
-    pub fn nop () -> Command {
-        Command { name: Commands::NOP, args: vec![] }
-    }
-
-    pub fn new (name: Commands, args: Vec<CommandArg>) -> Command {
-        Command { name, args }
-    }
-
-}
-
-pub fn command (command: &Command) {
-    println!("[{:#?}]", &command);
 }
 
 /*
@@ -188,7 +139,7 @@ impl Sequencer {
                 }
             }
         }
-        println!("");
+        eprintln!("");
     }
 
 }

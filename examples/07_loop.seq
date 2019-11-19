@@ -1,0 +1,3 @@
+k = ./04_just_sound.seq
+c = (sound /home/demo/Repos/jam/sequence/data/snare.wav)
+[16; k . k&c . k k k&c . k . k&c k . k k&c .]
