@@ -3,6 +3,8 @@ mod timeline;
 mod document;
 pub use document::Document;
 
+mod resource;
+
 mod parser;
 pub use parser::parse;
 

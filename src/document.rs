@@ -1,8 +1,127 @@
-use std::collections::HashMap;
-use crate::{timeline::Timeline, resource::{Sampler, Sequencer}};
+use std::cmp::{min, max};
+use std::ops::Bound::Included;
+use std::collections::{HashMap, BTreeMap};
+
+// two types of Temporal:
+// Continuous/Intermittent
+// Continuous uses Vector
+// Intermittent uses BTreeMap
+// interpolation trait?
+
+enum Resource { 
+    Sound,
+    Sequence
+}
+
+type Identifier = String;
+type Resources<T> = HashMap<Identifier, T>;
+type Sounds = Resources<Sound>;
+type Sequences = Resources<Sequence>;
+type Event = (Resource, Identifier);
+type Names = Resources<Event>;
+
+pub struct Document {
+    sounds: Sounds,
+    sequences: Sequences,
+    names: Names,
+    longest: usize,
+}
+
+impl Document {
+    pub fn new () -> Document {
+        let silence = Sound::from_samples(vec![0.0]);
+        let sounds = Sounds::new();
+        sounds.insert("".to_string(), silence);
+        let main = Sequence::new();
+        let sequences = Sequences::new();
+        sequences.insert("".to_string(), main);
+        let names = Names::new();
+        Document { sounds, sequences, names, longest: 0 }
+    }
+    pub fn render (&self, start: Moment, end: Moment) -> &[f32] {
+        let main = self.sequences.get("").unwrap();
+        main.render(&self, start, end)
+    }
+    pub fn longest (&self) -> usize { 0 }
+    pub fn name (&mut self, name: &str, resource: Resource, id: Identifier) {
+        self.names.insert(name.to_string(), (resource, id));
+    }
+}
+
+type Moment = usize;
+type Duration = usize;
+struct Sequence {
+    events: BTreeMap<Moment, Vec<Event>>,
+    bounds: Option<(Moment, Moment)>,
+    looped: Option<(Moment, Moment)>,
+}
+
+impl Sequence {
+    pub fn new () -> Sequence {
+        Sequence {
+            events: BTreeMap::new(),
+            bounds: None,
+            looped: None,
+        }
+    }
+    pub fn add (&mut self, moment: Moment, event: Event) {
+        match self.events.get(&moment) {
+            None => { self.events.insert(moment, vec![event]); },
+            Some(mut events) => { events.push(event); }
+        }
+        self.bounds = match self.bounds {
+            None => Some((moment, moment)),
+            Some((start, end)) => Some((min(start, moment), max(end, moment)))
+        }
+    }
+    pub fn render (&self, doc: &Document, start: Moment, end: Moment) -> &[f32] {
+        let duration = end - start;
+        let mut output = vec![0.0; duration];
+        let start = start - doc.longest();
+        let range = (Included(start), Included(end));
+        for (moment, events) in self.events.range(range) {
+            for (resource, id) in events {
+                let data = match resource {
+                    Sound => doc.sounds.get(id).unwrap().render(start, end),
+                    Sequence => doc.sequences.get(id).unwrap().render(doc, start, end)
+                };
+                for i in start..end+1 {
+                    output[i] += data[i];
+                }
+            }
+        }
+        output.as_slice()
+        // range = t - len(longest sound) ... t+size
+    }
+}
+
+struct Sound {
+    path: Option<String>,
+    samples: Vec<f32>,
+}
+
+impl Sound {
+    pub fn from_path (path: String) -> Sound {
+        Sound { path: Some(path), samples: vec![] }
+    }
+    pub fn from_samples (samples: Vec<f32>) -> Sound {
+        Sound { path: None, samples }
+    }
+    pub fn render (&self, start: Moment, end: Moment) -> &[f32] {
+        &self.samples[start..end+1]
+    }
+    pub fn len (&self) -> usize {
+        self.samples.len()
+    }
+}
+
+
+/*
+use crate::resource::{Sampler, Sequencer};
 
 #[derive(Debug)]
 pub struct Document {
+    resources: HashMap<Resource, HashMap<Identifier, Resource>>
     sampler: Sampler,
     sequencer: Sequencer,
     definitions: Definitions,
@@ -12,10 +131,7 @@ pub struct Document {
 impl Document {
     pub fn new () -> Document {
         Document {
-            sampler: Sampler::new(),
-            resources: Resources::new(),
-            definitions: Definitions::new(),
-            sequences: Sequences::new()
+            resources: HashMap::new()
         }
     }
 
@@ -68,6 +184,7 @@ impl Document {
         (Vec::new(), false)
     }
 }
+*/
 
 /*
 use std::time::Instant;
