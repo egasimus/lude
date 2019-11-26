@@ -2,6 +2,10 @@
 
 set -ae
 
+iterate () {
+  find ./src \( -iname "*" ! -iname ".*" \) | entr -c cargo test -- --nocapture
+}
+
 build () {
  cargo build
 }
@@ -10,21 +14,12 @@ tests () {
  ./target/debug/sequence_rs ./examples/04_just_sound.seq > /tmp/test-result
 }
 
-iterate () {
- #!/bin/sh
- ./dev build && ./dev tests
-}
-
 build-nix () {
  time nix-build -E 'with import <nixpkgs> {}; callPackage ./default.nix {}' $@
 }
 
 test-nix () {
  ./result/bin/jam-seqs ./examples/03_minimal.seq
-}
-
-iterate () {
- ./dev build && ./dev tests
 }
 
 pushd $(dirname $(realpath $0)) > /dev/null

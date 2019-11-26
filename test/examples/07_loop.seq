@@ -1,0 +1,9 @@
+1   smp = 14700 flick
+1   sec = 48000 smp
+120 b   = 60 second
+1   B   = 4 b
+
+k = ./04_just_sound.seq
+c = /home/demo/Repos/jam/sequence/data/snare.wav
+
+k . k&c . k k k&c . k . k&c k . k k&c .

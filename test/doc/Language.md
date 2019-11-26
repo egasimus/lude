@@ -41,8 +41,3 @@
 * A statement can be (7) a sub-document.
 * A sub-document can be written in place, between `()`.
 * A sub-document can be a path to a file.
-
-* The renderer may handle magic variables in a special way.
-* For audio, magic variables are samplerate! and bpm!
-* For audio, the time unit is the length of a bar, subdivided.
-* Event grids are defined in terms of the time unit.

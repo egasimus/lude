@@ -1,0 +1,20 @@
+WHITESPACE = _{" "|NEWLINE}
+Separator  = _{WHITESPACE|NEWLINE}
+File       = {SOI~Doc~EOI}
+Doc        = {Statement*}
+Statement  = {Comment|Jump|Event|MultiEvent|Grid|Assign|SubDoc}
+Comment    = {"#"}
+Jump       = {"@"~Time}
+Time       = {NUMBER+}
+Event      = {Path|Alias}
+Path       = @{("/"+|"./")~Segment~("/"~Segment)*~"/"?}
+String     = {(LETTER|NUMBER|".")+}
+Segment    = @{String}
+Identifier = @{String}
+Alias      = {Identifier}
+MultiEvent = {Event~("&"~Event)+}
+Rest       = {"."}
+Grid       = {"["~(Event|Rest)+~"]"}
+Assign     = {(Alias~"="~Event)|Marker}
+Marker     = {Identifier ~ ":"}
+SubDoc     = {Path|("("~Doc~")")}

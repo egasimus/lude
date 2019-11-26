@@ -1,0 +1,5 @@
+k = ./04_just_sound.seq
+s = (play /home/demo/Repos/jam/sequence/data/snare.wav)
+k
+s
+k&s

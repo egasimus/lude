@@ -7,10 +7,9 @@ use super::Document;
 #[grammar = "./grammar.pest"]
 struct DefaultParser;
 
-pub fn parse (document: &str) -> Document {
-    let parse_start = Instant::now();
+pub fn eval (source: &str) -> Document {
     let mut doc = Document::new();
-    let parsed = DefaultParser::parse(Rule::Document, document)
+    let parsed = DefaultParser::parse(Rule::Document, source)
         .unwrap_or_else(|e| panic!("{}", e)).next().unwrap();
     //eprintln!("{:#?}", &parsed);
     for statement in parsed.into_inner() {
@@ -38,7 +37,6 @@ pub fn parse (document: &str) -> Document {
             }
         }
     };
-    eprintln!("Parsed in {}usec", parse_start.elapsed().as_micros());
     doc
 }
 

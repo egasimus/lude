@@ -13,3 +13,8 @@ In a perfect world...
 * what's unique about this approach: the semantic overlay (timeline + tracks)
   that applies equally to a single sample, a sequence of samples, or a whole
   composition (a sequence of sequences) and is described through a DSL
+
+* The renderer may handle magic variables in a special way.
+* For audio, magic variables are samplerate! and bpm!
+* For audio, the time unit is the length of a bar, subdivided.
+* Event grids are defined in terms of the time unit.
