@@ -7,18 +7,19 @@
 
 * A document may contain zero or more statements.
 * A document has a temporal length.
-* A document has a playhead, starting at 0.
-* Events of non-zero length advance the playhead.
+* A document has a cursor, starting at 0.
+* Events of non-zero length advance the cursor.
 
 * A statement can be (1) a comment.
 * A statement can end with a comment.
 * Comments are ignored by evaluation, and thus always have zero length.
 
 * A statement can be (2) a jump command, denoted by `@`.
-* A jump command moves the playhead to an absolute or relative temporal location.
+* A jump command moves the cursor to an absolute or relative temporal location.
 
-* A statement can be (3) an event. Events may have non-zero length.
-* Evaluating each event advances the parent document's playhead by the length of that event.
+* A statement can be (3) a simple event. Events may have non-zero length.
+* A simple event can be (3a) a path to a media sample.
+* Evaluating each event advances the parent document's cursor by the length of that event.
 * Thus, top-level events are written to the timeline end-to-end.
 * The document's length is equal to the end time of the last event.
 
@@ -35,12 +36,12 @@
 * An assignment binds an alias to a value.
 * A value can be a number, a string, or a statement.
 * After an assignment, writing the alias is equivalent to writing its value.
-* Assignments never move the playhead.
+* Assignments never move the cursor.
 * Assignments in super-documents have precedence over assignments in sub-documents.
 * Assigning a sub-document to an alias allows you to refer to the assignments
   contained in the sub-document using the `.` operator.
 * A special type of assignment is a marker, ending with `:`.
-* Markers bind an identifier to the current position of the playhead
+* Markers bind an identifier to the current position of the cursor
 
 * A statement can be (7) a sub-document.
 * A sub-document can be written in place, between `()`.
