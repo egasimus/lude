@@ -1,5 +1,4 @@
-use crate::eval::{read, eval};
-use crate::render::render;
+use crate::eval::{read, eval, render};
 
 #[test]
 /// a document can contain zero statements
@@ -54,4 +53,9 @@ fn test_render () {
     assert_eq!(out.len(), 1);
     let out = render(&doc, 100, 300);
     assert_eq!(out.len(), 201);
+    let doc = eval(read("./test/100ms.wav"));
+    let out = render(&doc, 0, 100);
+    assert_eq!(out.len(), 101);
+    println!("{:?}", &out);
+    assert_eq!(out.get(0).unwrap().len(), 1);
 }

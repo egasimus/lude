@@ -1,7 +1,9 @@
+use std::cmp::min;
+use std::cell::RefCell;
 use std::collections::{HashMap, BTreeMap};
 use std::time::Instant;
 use pest::{Parser, iterators::Pair};
-use super::render::sound::get_duration;
+use super::sound::{get_duration, get_frame};
 
 #[derive(Parser)]
 #[grammar = "./eval/grammar.pest"]
@@ -16,6 +18,21 @@ pub fn read (source: &str) -> Pair<Rule> {
     eprintln!("Parsed in {}usec", start.elapsed().as_micros());
 
     parsed
+}
+
+pub fn render (doc: &Document, begin: u128, end: u128) -> Vec<Vec<f32>> {
+    let start = Instant::now();
+
+    let mut channels = Vec::new();
+
+    for frame in begin..(end+1) {
+        //eprintln!("rendering frame {}", &frame);
+        channels.push(doc.get_frame(frame));
+    }
+
+    eprintln!("Rendered in {}usec", start.elapsed().as_micros());
+
+    channels
 }
 
 pub fn eval (parsed: Pair<Rule>) -> Document {
@@ -75,8 +92,8 @@ pub fn eval (parsed: Pair<Rule>) -> Document {
 pub struct Document {
     pub length: u128,
     pub events: BTreeMap<u128, Vec<String>>,
-    pub durations: HashMap<String, u128>,
-    max_duration: u128,
+    pub durations: RefCell<HashMap<String, u128>>,
+    longest: u128,
 }
 
 impl Document {
@@ -84,14 +101,14 @@ impl Document {
         Document {
             length: 0,
             events: BTreeMap::new(),
-            durations: HashMap::new(),
-            max_duration: 0
+            durations: RefCell::new(HashMap::new()),
+            longest: 0
         }
     }
     pub fn add_event (&mut self, at: u128, event: &str) {
         let duration = self.get_event_duration(event);
-        if duration > self.max_duration {
-            self.max_duration = duration
+        if duration > self.longest {
+            self.longest = duration
         }
         let event = event.to_string();
         match self.events.get_mut(&at) {
@@ -103,39 +120,52 @@ impl Document {
             }
         }
     }
-    pub fn get_event_duration (&mut self, event: &str) -> u128 {
-        match self.durations.get(event) {
+    pub fn get_event_duration (&self, event: &str) -> u128 {
+        let mut durations = self.durations.borrow_mut();
+        match durations.get(event) {
             Some(duration) => *duration,
             None => {
                 let duration = get_duration(&event);
-                self.durations.insert(event.to_string(), duration);
+                durations.insert(event.to_string(), duration);
                 duration
             }
         }
     }
-    pub fn get_frame (&self, index: u128) -> Vec<f32> {
+    pub fn get_frame (&self, frame_index: u128) -> Vec<f32> {
+        // nothing if document is empty
+        if self.events.len() == 0 { return Vec::new() }
+
+        // determine real bounds of document
         let min = *self.events.keys().next_back().unwrap();
         let max = *self.events.keys().next().unwrap();
-        if index < min || index > (max + self.max_duration) {
-            // nothing before the beginning
-            Vec::new()
-        } else {
-            // maybe something in the middle
-            let frame = Vec::new();
-            let range = self.events.range(index - self.max_duration..index);
-            for (t, events) in range {
-                for event in events {
-                    let event_end = t + self.get_event_duration(event);
-                    if event_end >= index {
-                        let u = event_end - index;
-                        let event_frame = self.get_event_frame(event, u);
-                    }
+        let longest = self.longest;
+        let end = max + longest;
+
+        // nothing before the beginning or after the end
+        if frame_index < min || frame_index > end { return Vec::new() }
+
+        // maybe something in the middle?
+        let mut frame: Vec<f32> = Vec::new();
+        let mut event_frames = Vec::new();
+        let start = if frame_index < longest { 0 } else { frame_index - longest };
+        let event_range = self.events.range(start..frame_index);
+        for (event_start, events) in event_range {
+            let event_frame_index = frame_index - event_start;
+            for event in events {
+                match get_frame(event, event_frame_index as i64) {
+                    Some(frame) => event_frames.push(frame),
+                    _ => {}
                 }
             }
-            frame
         }
-    }
-    pub fn get_event_frame (&self, event: &str, index: u128) -> Vec<f32> {
-        Vec::new()
+        for event_frame in event_frames.iter() {
+            for (i, value) in event_frame.iter().enumerate() {
+                match frame.get_mut(i) {
+                    Some(&mut mut channel) => channel += value,
+                    None => frame.push(*value)
+                }
+            }
+        }
+        frame
     }
 }

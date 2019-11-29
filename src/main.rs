@@ -4,7 +4,7 @@ mod tests;
 mod eval;
 pub use eval::{read, eval};
 
-mod render;
+mod sound;
 
 extern crate pest;
 #[macro_use] extern crate pest_derive;
