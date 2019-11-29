@@ -1,4 +1,5 @@
-use super::{read, eval};
+use crate::eval::{read, eval};
+use crate::render::render;
 
 #[test]
 /// a document can contain zero statements
@@ -30,7 +31,7 @@ fn test_single_event () {
 
 #[test]
 /// a document containing simple events and/or jumps
-fn test_rests () {
+fn test_jumps () {
     let doc = eval(read("./test/100ms.wav\n@10\n./test/100ms.wav"));
     assert_eq!(doc.events.len(), 2);
     assert_eq!(doc.length, 4420);
@@ -43,4 +44,14 @@ fn test_rests () {
     assert_eq!(doc.events.len(), 1);
     assert_eq!(doc.events.get(&0).unwrap().len(), 2);
     assert_eq!(doc.length, 4410);
+}
+
+#[test]
+/// render to memory
+fn test_render () {
+    let doc = eval(read(""));
+    let out = render(&doc, 0, 0);
+    assert_eq!(out.len(), 1);
+    let out = render(&doc, 100, 300);
+    assert_eq!(out.len(), 201);
 }

@@ -1,10 +1,10 @@
-//mod timeline;
+#[cfg(test)]
+mod tests;
 
 mod eval;
 pub use eval::{read, eval};
 
 mod render;
-use self::render::render;
 
 extern crate pest;
 #[macro_use] extern crate pest_derive;
@@ -24,5 +24,5 @@ fn main() {
     eprintln!("{:#?}", &parsed);
     let document = eval(parsed);
     eprintln!("{:#?}", &document);
-    render(&document);
+    //render(&document);
 }
