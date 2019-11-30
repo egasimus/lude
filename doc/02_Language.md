@@ -19,6 +19,8 @@
 
 * A statement can be (3) a simple event. Events may have non-zero length.
 * A simple event can be (3a) a path to a media sample.
+* A simple event can be sliced from the length of its source sample
+  by suffixing it with `[<START>:<END>]`
 * Evaluating each event advances the parent document's cursor by the length of that event.
 * Thus, top-level events are written to the timeline end-to-end.
 * The document's length is equal to the end time of the last event.

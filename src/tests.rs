@@ -46,6 +46,15 @@ fn test_jumps () {
 }
 
 #[test]
+/// a document containing a sliced event
+fn test_slice () {
+    let doc = eval(read("./test/100ms.wav[10:30]"));
+    assert_eq!(doc.length, 20);
+    let out = render(&doc, 0, 0);
+    assert_eq!(out.len(), 20);
+}
+
+#[test]
 /// render to memory
 fn test_render () {
     let doc = eval(read(""));
@@ -66,6 +75,10 @@ fn test_render () {
     match out.get(4413) { Some(_) => panic!("f#4413 should not exist"), _=>{} }
 
     let doc = eval(read("./test/100ms.wav\n@0\n./test/100ms_inverted.wav"));
+    let out = render(&doc, 0, 100);
+    println!("{:?}", &out);
+
+    let doc = eval(read("./test/100ms.wav[10:20]"));
     let out = render(&doc, 0, 100);
     println!("{:?}", &out);
 }
