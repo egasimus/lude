@@ -6,7 +6,8 @@ use std::collections::BTreeMap;
 pub struct Event {
     src: String,
     slice_start: Option<FrameTime>,
-    slice_end: Option<FrameTime>
+    slice_end: Option<FrameTime>,
+    duration: FrameTime,
 }
 
 #[derive(Debug)]
@@ -36,6 +37,7 @@ impl Document {
         // bump longest duration.
         // used for determining the range of frame times
         // that may contain events that matter in a frame
+        //println!("{} {:?} {:?}", &src, &slice_start, &slice_end);
         let duration = match slice_end {
             Some(slice_end) => match slice_start {
                 Some(slice_start) => slice_end - slice_start,
@@ -47,7 +49,7 @@ impl Document {
             self.longest = duration
         }
 
-        let event = Event { src: src.to_string(), slice_start, slice_end };
+        let event = Event { src: src.to_string(), slice_start, slice_end, duration };
         match self.events.get_mut(&at) {
             Some(events) => events.push(event),
             None => {
@@ -89,6 +91,11 @@ impl Document {
                     Some(offset) => offset
                 };
                 let index = (event_frame_index + offset) as i64;
+                match event.slice_end {
+                    Some(slice_end) => if index as u128 > slice_end { continue },
+                    _=>{}
+                }
+                //println!("{}={:?}[{}]", &frame_index, &event.src, &index);
                 match self.media.get_frame(&event.src, index) {
                     Some(frame) => event_frames.push(frame),
                     _ => {}

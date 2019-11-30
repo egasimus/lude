@@ -26,15 +26,15 @@ fn main() {
     if args.len() == 1 { exit(1); }
     let filename = &args[1];
     let source = read_to_string(filename).expect("cannot read file");
-    eprintln!("{:#?}", &source);
+    //eprintln!("{:#?}", &source);
     let parsed = read(&source);
-    eprintln!("{:#?}", &parsed);
+    //eprintln!("{:#?}", &parsed);
     let document = eval(parsed);
-    eprintln!("{:#?}", &document);
+    //eprintln!("{:#?}", &document);
     let (_, max, longest) = document.bounds();
     let rendered = render(&document, 0, max + longest);
     let channels = to_channels(rendered);
     let output = to_frames(channels);
-    eprintln!("{:#?}", &output);
+    //eprintln!("{:#?}", &output);
     write_to_file(output, "output.wav");
 }
