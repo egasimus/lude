@@ -58,7 +58,10 @@ fn test_render () {
     assert_eq!(out.len(), 4413);
     println!("{:?}", &out);
     match out.get(0).unwrap() {
-        None => panic!("frame 0 should not be None"),
+        None => panic!("f#0 should not be None"),
         Some(frame) => assert_eq!(frame.len(), 1)
     }
+    match out.get(4411) { None => panic!("f#4411 should exist"), _=>{} }
+    match out.get(4412) { None => panic!("f#4412 should exist"), _=>{} }
+    match out.get(4413) { Some(_) => panic!("f#4413 should not exist"), _=>{}}
 }

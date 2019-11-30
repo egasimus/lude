@@ -138,10 +138,9 @@ impl Document {
         if frame_index < min || frame_index > end { return None }
 
         // maybe something in the middle?
-        let mut frame: Vec<f32> = Vec::new();
         let mut event_frames = Vec::new();
         let start = if frame_index < longest { 0 } else { frame_index - longest };
-        let event_range = self.events.range(start..frame_index);
+        let event_range = self.events.range(start..frame_index+1);
         for (event_start, events) in event_range {
             let event_frame_index = frame_index - event_start;
             for event in events {
@@ -162,16 +161,17 @@ pub fn render (
 ) -> Vec<Option<Frame>> {
     let start = Instant::now();
 
-    let mut channels = Vec::new();
+    let mut frames = Vec::new();
 
-    for frame in begin..(end+1) {
-        let frame = doc.get_frame(frame);
-        channels.push(frame);
+    for index in begin..(end+1) {
+        let frame = doc.get_frame(index);
+        frames.push(frame);
     }
 
-    eprintln!("Rendered in {}usec", start.elapsed().as_micros());
+    eprintln!("Rendered {}..{} in {}usec",
+        &begin, &end, start.elapsed().as_micros());
 
-    channels
+    frames
 }
 
 

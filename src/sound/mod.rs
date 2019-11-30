@@ -7,7 +7,7 @@ use sndfile::{SndFile, OpenMode, SeekMode};
 
 #[derive(Debug)]
 pub struct SoundMap {
-    sounds: RefCell<HashMap<String, SndFile>>
+    sounds: RefCell<HashMap<String, SndFile>>,
 }
 
 impl SoundMap {
@@ -40,7 +40,7 @@ impl SoundMap {
         let info = sound.get_sndinfo();
         let channels = info.channels;
         let mut frames = vec![0.0; channels as usize];
-        sound.seek(frame + 1, SeekMode::SeekSet);
+        sound.seek(frame-1, SeekMode::SeekSet);
         sound.readf_f32(frames.as_mut_slice(), 1);
         Some(frames)
     }
