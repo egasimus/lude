@@ -21,8 +21,7 @@
 
 #![allow(dead_code, non_camel_case_types)]
 
-// FIXME relative (circular?) import
-use crate::sound::sndfile::{SndInfo, Error};
+use crate::media::sndfile::{SndInfo, Error};// FIXME relative (circular?) import
 
 use std::os::raw::{c_char, c_void};
 type intptr_t = isize; // hack; try to avoid libc crate

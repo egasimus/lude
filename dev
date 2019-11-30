@@ -3,7 +3,8 @@
 set -ae
 
 iterate () {
-  find ./src \( -iname "*" ! -iname ".*" \) | entr -c cargo test -- --nocapture
+  find ./src \( -iname "*" ! -iname ".*" \) | entr -c \
+    cargo test -- --nocapture --test-threads=1
 }
 
 build () {

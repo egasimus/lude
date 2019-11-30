@@ -1,14 +1,18 @@
+mod types;
+mod eval;
+mod document;
+mod render;
+mod media;
+
+pub use eval::{read, eval};
+pub use render::render;
+
 #[cfg(test)]
 mod tests;
 
-mod eval;
-pub use eval::{read, eval};
-
-mod sound;
-
 extern crate pest;
 #[macro_use] extern crate pest_derive;
-#[macro_use] extern crate lazy_static;
+//#[macro_use] extern crate lazy_static;
 //#[macro_use] extern crate debug_stub_derive;
 
 use std::env;
