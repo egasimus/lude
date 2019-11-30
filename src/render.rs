@@ -1,7 +1,7 @@
 use std::time::Instant;
 use std::cell::RefCell;
 use crate::document::Document;
-use crate::types::{FrameTime, Chunk, Wave, Output};
+use crate::types::{FrameTime, Frame, Chunk, Wave};
 
 pub fn render (doc: &Document, begin: FrameTime, end: FrameTime) -> Chunk {
     let start = Instant::now();
@@ -19,7 +19,7 @@ pub fn render (doc: &Document, begin: FrameTime, end: FrameTime) -> Chunk {
     frames
 }
 
-pub fn flatten (chunk: Chunk) -> Output {
+pub fn to_channels (chunk: Chunk) -> Vec<Wave> {
     let start = Instant::now();
 
     let mut channels: Vec<RefCell<Wave>> = Vec::new();
@@ -54,13 +54,33 @@ pub fn flatten (chunk: Chunk) -> Output {
             },
         }
     }
-    let mut output = Output::new();
+    let mut output = Vec::new();
     for channel in channels {
         output.push(channel.into_inner());
     }
 
-    eprintln!("flattened {} frames in {}usec ",
-        &chunk.len(), start.elapsed().as_micros());
+    eprintln!("regrouped chunk of {} frames into {} channels in {} usec",
+        &chunk.len(), &output.len(), start.elapsed().as_micros());
 
     output
+}
+
+pub fn to_frames (channels: Vec<Wave>) -> Vec<Frame> {
+    let start = Instant::now();
+
+    let duration = channels.get(0).unwrap().len();
+    let mut frames = Vec::with_capacity(duration);
+    let channel_count = channels.len();
+    for frame_index in 0..duration {
+        let mut frame = Vec::with_capacity(channel_count);
+        for channel in channels.iter() {
+            frame.push(*channel.get(frame_index).unwrap())
+        }
+        frames.push(frame)
+    }
+
+    eprintln!("regrouped {} channels into {} frames in {} usec",
+        &channels.len(), &frames.len(), start.elapsed().as_micros());
+
+    frames
 }

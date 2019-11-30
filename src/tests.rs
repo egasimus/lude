@@ -1,5 +1,5 @@
 use crate::eval::{read, eval};
-use crate::render::{render, flatten};
+use crate::render::{render, to_channels, to_frames};
 
 #[test]
 /// a document can contain zero statements
@@ -94,7 +94,7 @@ fn test_slice () {
     for i in 21..30 { assert_none(&out, i); }
     for i in 31..41 { assert_some(&out, i); }
     for i in 41..101 { assert_none(&out, i); }
-    println!("Flat   #4C = {:?}", flatten(out));
+    println!("Flat   #4C = {:?}", to_frames(to_channels(out)));
 
     //println!("Render #4C (overlapping slices)");
 }

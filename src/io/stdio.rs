@@ -1,7 +1,7 @@
-use crate::types::Chunk;
-use crate::sound::sndfile::{SndFile, OpenMode};
+use crate::types::Frame;
+use crate::media::sndfile::{SndFile, OpenMode};
 
-pub fn write_to_stdout (frames: Chunk) {
+pub fn write_to_stdout (frames: Vec<Frame>) {
     let start = Instant::now();
 
     let sndfile = SndFile::new_with_fd(1, OpenMode::Write, true).unwrap();

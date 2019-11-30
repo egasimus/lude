@@ -1,3 +1,5 @@
+/// write frames to JACK
+
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use crate::Document;

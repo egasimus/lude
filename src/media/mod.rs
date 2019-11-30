@@ -1,4 +1,4 @@
-mod sndfile;
+pub mod sndfile;
 mod sndfile_ffi;
 
 use std::cell::RefCell;
