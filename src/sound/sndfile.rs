@@ -53,7 +53,7 @@ mod ffi;
 /// The SndInfo structure is for passing data between the calling
 /// function and the library when opening a file for reading or writing.
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SndInfo {
     pub frames : i64,
     pub samplerate : i32,
@@ -236,6 +236,7 @@ impl BitOr for FormatType {
 }
 
 /// SndFile object, used to load/store sound from a file path or an fd.
+#[derive(Debug)]
 pub struct SndFile {
     handle : ffi::SNDFILEhandle, //*const ffi::SNDFILE,
     info : Box<SndInfo>

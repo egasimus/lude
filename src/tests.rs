@@ -48,14 +48,17 @@ fn test_jumps () {
 #[test]
 /// render to memory
 fn test_render () {
-    let doc = eval(read(""));
-    let out = render(&doc, 0, 0);
+    let mut doc = eval(read(""));
+    let out = render(&mut doc, 0, 0);
     assert_eq!(out.len(), 1);
-    let out = render(&doc, 100, 300);
+    let out = render(&mut doc, 100, 300);
     assert_eq!(out.len(), 201);
-    let doc = eval(read("./test/100ms.wav"));
-    let out = render(&doc, 0, 100);
-    assert_eq!(out.len(), 101);
+    let mut doc = eval(read("./test/100ms.wav"));
+    let out = render(&mut doc, 0, 4412);
+    assert_eq!(out.len(), 4413);
     println!("{:?}", &out);
-    assert_eq!(out.get(0).unwrap().len(), 1);
+    match out.get(0).unwrap() {
+        None => panic!("frame 0 should not be None"),
+        Some(frame) => assert_eq!(frame.len(), 1)
+    }
 }
