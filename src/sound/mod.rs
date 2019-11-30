@@ -42,6 +42,7 @@ impl SoundMap {
         let mut frames = vec![0.0; channels as usize];
         sound.seek(frame, SeekMode::SeekSet);
         sound.readf_f32(frames.as_mut_slice(), 1);
+        println!("get_frames {}={:?}", &path, &frames);
         Some(frames)
     }
 }

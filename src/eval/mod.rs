@@ -1,7 +1,7 @@
-use std::cmp::min;
 use std::cell::RefCell;
 use std::collections::{HashMap, BTreeMap};
 use std::time::Instant;
+use std::mem::replace;
 use pest::{Parser, iterators::Pair};
 use super::sound::SoundMap;
 
@@ -45,12 +45,15 @@ pub fn eval (parsed: Pair<Rule>) -> Document {
                     let time = inner.into_inner().next().unwrap();
                     match time.as_rule() {
                         Rule::Time => {
-                            cursor = FrameTime::from_str_radix(
-                                time.as_str(),
+                            eprintln!("Rule::Time={}", time.as_str());
+                            let time = FrameTime::from_str_radix(
+                                time.as_str().to_string().trim(),
                                 10
                             ).unwrap();
+                            cursor = time;
                         },
                         Rule::RelTime => {
+                            eprintln!("Rule::RelTime={}", time.as_str());
                             let mut time = time.into_inner();
                             let rel = time.next().unwrap().as_str();
                             let dur = FrameTime::from_str_radix(
@@ -150,7 +153,7 @@ impl Document {
                 }
             }
         }
-        merge_event_frames(event_frames)
+        sum_event_frames(event_frames)
     }
 }
 
@@ -175,16 +178,19 @@ pub fn render (
 }
 
 
-fn merge_event_frames (event_frames: Vec<Frame>) -> Option<Frame> {
+fn sum_event_frames (event_frames: Vec<Frame>) -> Option<Frame> {
+    print!("sum_event_frames {:?}", &event_frames);
     let mut frame: Frame = Vec::new();
     for event_frame in event_frames.iter() {
         for (i, value) in event_frame.iter().enumerate() {
+            print!("<-{}:{:?}::{:?}", &i, &value, &frame.get(i));
             match frame.get_mut(i) {
-                Some(&mut mut channel) => channel += value,
+                Some(&mut current) => {frame[i] = current + value;},
                 None => frame.push(*value)
             }
         }
     }
+    println!("={:?}", &frame);
     if frame.len() > 0 {
         Some(frame)
     } else {

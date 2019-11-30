@@ -63,8 +63,9 @@ fn test_render () {
     }
     match out.get(4411) { None => panic!("f#4411 should exist"), _=>{} }
     match out.get(4412) { None => panic!("f#4412 should exist"), _=>{} }
-    match out.get(4413) { Some(_) => panic!("f#4413 should not exist"), _=>{}}
+    match out.get(4413) { Some(_) => panic!("f#4413 should not exist"), _=>{} }
 
     let doc = eval(read("./test/100ms.wav\n@0\n./test/100ms_inverted.wav"));
-    let out = render(&doc, 0, 4412);
+    let out = render(&doc, 0, 100);
+    println!("{:?}", &out);
 }
