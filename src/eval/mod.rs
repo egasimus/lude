@@ -124,7 +124,7 @@ impl Document {
             }
         }
     }
-    pub fn get_frame (&mut self, frame_index: u128) -> Option<Frame> {
+    pub fn get_frame (&self, frame_index: u128) -> Option<Frame> {
         // nothing if document is empty
         if self.events.len() == 0 { return None }
 
@@ -155,7 +155,7 @@ impl Document {
 }
 
 pub fn render (
-    doc: &mut Document,
+    doc: &Document,
     begin: FrameTime,
     end: FrameTime
 ) -> Vec<Option<Frame>> {

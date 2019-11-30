@@ -48,15 +48,15 @@ fn test_jumps () {
 #[test]
 /// render to memory
 fn test_render () {
-    let mut doc = eval(read(""));
-    let out = render(&mut doc, 0, 0);
+    let doc = eval(read(""));
+    let out = render(&doc, 0, 0);
     assert_eq!(out.len(), 1);
-    let out = render(&mut doc, 100, 300);
+    let out = render(&doc, 100, 300);
     assert_eq!(out.len(), 201);
-    let mut doc = eval(read("./test/100ms.wav"));
-    let out = render(&mut doc, 0, 4412);
+
+    let doc = eval(read("./test/100ms.wav"));
+    let out = render(&doc, 0, 4412);
     assert_eq!(out.len(), 4413);
-    println!("{:?}", &out);
     match out.get(0).unwrap() {
         None => panic!("f#0 should not be None"),
         Some(frame) => assert_eq!(frame.len(), 1)
@@ -64,4 +64,7 @@ fn test_render () {
     match out.get(4411) { None => panic!("f#4411 should exist"), _=>{} }
     match out.get(4412) { None => panic!("f#4412 should exist"), _=>{} }
     match out.get(4413) { Some(_) => panic!("f#4413 should not exist"), _=>{}}
+
+    let doc = eval(read("./test/100ms.wav\n@0\n./test/100ms_inverted.wav"));
+    let out = render(&doc, 0, 4412);
 }
