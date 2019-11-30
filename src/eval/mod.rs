@@ -61,14 +61,25 @@ impl Eval<'_> {
     }
     fn event (&self, event: Pair<Rule>) {
         eprintln!("!!! Event: {:#?}", &event.as_str());
-        let mut event = event.into_inner();
-        let name = event.next().unwrap().as_str();
-        let slice: Option<(FrameTime, FrameTime)> = match event.next() {
-            Some(event) => { println!("-----------slice:{:#?}",&event); None }
-            _ => None
-        };
+        let mut name = "";
+        let mut slice_start = None;
+        let mut slice_end = None;
+        for pair in event.into_inner().flatten() {
+            match pair.as_rule() {
+                Rule::Path => name = pair.as_str(),
+                Rule::SliceStart => slice_start = Some(
+                    FrameTime::from_str_radix(pair.as_str(), 10).unwrap()
+                ),
+                Rule::SliceEnd => slice_end = Some(
+                    FrameTime::from_str_radix(pair.as_str(), 10).unwrap()
+                ),
+                _ => unreachable!()
+            }
+        }
         let cursor = *self.cursor.borrow();
-        let advance = self.doc.borrow_mut().add_event(cursor, &name);
+        let advance = self.doc.borrow_mut().add_event(
+            cursor, &name, slice_start, slice_end
+        );
         self.cursor.replace(cursor + advance);
     }
     fn jump (&self, jump: Pair<Rule>) {
@@ -122,8 +133,14 @@ impl Document {
             longest: 0
         }
     }
-    pub fn add_event (&mut self, at: FrameTime, event: &str) -> FrameTime {
-        eprintln!("add_event {} {}", &at, &event);
+    pub fn add_event (
+        &mut         self,
+        at:          FrameTime,
+        event:       &str,
+        slice_start: Option<FrameTime>,
+        slice_end:   Option<FrameTime>,
+    ) -> FrameTime {
+        eprintln!("add_event {} {}[{:?}:{:?}]", &at, &event, &slice_start, &slice_end);
         let duration = self.get_event_duration(event);
         if duration > self.longest {
             self.longest = duration
