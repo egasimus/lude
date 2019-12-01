@@ -1,50 +1,70 @@
-* Language for describing a sequence of events.
-* Three stages: parse, evaluate, render.
-* A document is parsed by PEG.
-* A parsed document is evaluated statement by statement.
-* An evaluated document can be rendered to file or realtime output.
-* An evaluated document with its parse metadata can be passed to a GUI editor.
+# Language
 
-* A document may contain zero or more statements.
-* A document has a temporal length.
-* A document has a cursor, starting at 0.
-* Events of non-zero length advance the cursor.
+## Overview
+A **document** is a text string describing a temporal sequence of events.
 
-* A statement can be (1) a comment.
-* A statement can end with a comment.
-* Comments are ignored by evaluation, and thus always have zero length.
+It is **parsed** by [Pest](https://pest.rs) into **statements**
+which are **evaluated** into a full, unambiguous description of
+what is to be **rendered** to an **output**.
 
-* A statement can be (2) a jump command, denoted by `@`.
-* A jump command moves the cursor to an absolute or relative temporal location.
+* `TODO` Render the results of the parse and evaluate stages in a GUI.
+See [Iced](https://github.com/hecrj/iced).
 
-* A statement can be (3) a simple event. Events may have non-zero length.
-* A simple event can be (3a) a path to a media sample.
-* A simple event can be sliced from the length of its source sample
-  by suffixing it with `[<START>:<END>]`
-* Evaluating each event advances the parent document's cursor by the length of that event.
-* Thus, top-level events are written to the timeline end-to-end.
-* The document's length is equal to the end time of the last event.
+## Statements
+A document contains zero or more **statements**, separated by **whitespace**.
 
-* A statement can be (4) multiple simultaneous events, joined by `&`.
-* The length of such a statement is equal to the length of the longest event
+* `TODO` Make whitespace less significant.
 
-* A statement can be (5) a grid.
-* A grid is a helper for regularly spaced events, such as musical rhythms.
-* Events in a grid are spaced at a regular interval instead of end-to-end.
-* Events in a grid can be marked with offsets to play between the gridlines.
-* Grids and the events in them can be annotated with markers: **TBD**
+### Comments
+* `TODO` A statement can be a **comment**, which is ignored.
+* `TODO` A comment is delimited by a start comment token
+         and either an end comment token or a newline.
 
-* A statement can be (6) an assignment.
-* An assignment binds an alias to a value.
-* A value can be a number, a string, or a statement.
-* After an assignment, writing the alias is equivalent to writing its value.
-* Assignments never move the cursor.
-* Assignments in super-documents have precedence over assignments in sub-documents.
-* Assigning a sub-document to an alias allows you to refer to the assignments
-  contained in the sub-document using the `.` operator.
-* A special type of assignment is a marker, ending with `:`.
-* Markers bind an identifier to the current position of the cursor
+### Time
+During evaluation, a **cursor** points to the current **time**.
+Time is measured in **frames**, represented by an **unsigned integer**.
+Frames correspond to the **output sample rate** (currently hardcoded 44100 Hz)
 
-* A statement can be (7) a sub-document.
-* A sub-document can be written in place, between `()`.
-* A sub-document can be a path to a file.
+* `TODO` Measure time in [flicks](https://en.wikipedia.org/wiki/Flick_(time)).
+* `TODO` Allow custom units of time to be defined.
+* `TODO` Allow output sample rate to be set.
+
+Stating one of the following commands moves the cursor:
+
+* The **jump** command (`@NUMBER`) sets the cursor to `NUMBER`.
+* The **skip** command (`@+NUMBER`) moves the cursor forward by `NUMBER`.
+* The **back** command (`@-NUMBER`) mobes the cursor back by `NUMBER`.
+* `TODO` Remove `@` prefix from skip and back.
+* `TODO` The **mark** command gives a name to the current value of the cursor.
+
+A document has a temporal **length**, equal to
+the start point of the last event
+plus the length of the last event.
+
+### Source
+Stating a **path** to a **source** makes that source **active**.
+
+### Slice
+Stating a **slice** writes a portion of the active source
+to the current position of the cursor and advances the cursor
+by the duration of the slice.
+
+Following a slice with `&` prevents the cursor from advancing,
+allowing multiple slices to be played simultaneously.
+
+The following slices are available:
+
+* The `[]` slice writes the full source.
+* The `[START:]` or `[START...]` slice writes the part of the source
+  from `START` frames into the source up to the end of the source.
+* The `[:END]` or `[...END]` slice writes the part of the source
+  from the start of the source up to `END` frames into the source.
+* The `[START:END]` slice writes the part of the source
+  between `START` and `END`.
+* `TODO` `[START...]`, `[...END]`, `[` vs `(` (inclusive vs. non-inclusive)
+* `TODO` Change `[START:END]` to `[START:LENGTH]` (length pos/neg)
+         and use `..` for absolute frame positions.
+
+### Name
+Assignment is of the form `NAME = (CONTENT)`.
+Afterwards, writing `NAME` is equivalent to writing `CONTENT`.
