@@ -59,17 +59,18 @@ allowing multiple slices to be played simultaneously.
 
 The following slices are available:
 
-* The `[]` slice writes the full source.
-* The `[x:]` or `[x...]` slice writes the part of the source
+* The `||` slice writes the full source.
+* The `|x:|` slice writes the part of the source
   from `x` frames into the source up to the end of the source.
-* The `[:y or `[...y]` slice writes the part of the source
+* The `|:y| slice writes the part of the source
   from the start of the source up to `y` frames into the source.
-* The `[x:y]` slice writes the part of the source
+* The `|x:y|` slice writes the part of the source
   between `x` and `y`.
-* `TODO` `[x...]`, `[...y]`, `[` vs `(` (inclusive vs. non-inclusive)
-* `TODO` Change `[x:y]` to `[x:n]` (length pos/neg)
-         and use `..` for absolute frame positions.
-* `TODO` Change slice separator to `|`
+* The `|x+n|` slice writes the part of the source
+  between `x` and `x+n`.
+* The `|x-n|` slice writes the part of the source
+  between `x` and `x-n`.
+* `TODO` wrap slices around
 
 ### Name
 Assignment is of the form `NAME = [CONTENT]`.

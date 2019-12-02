@@ -18,8 +18,8 @@ Source     = {Path}
 Path       = @{("/"+|"./"|"../")+~Segment~("/"~Segment)*~"/"?}
 Segment    = @{String}
 
-Slices     = _{"|"~Slice*}
-Slice      = {SliceStart?~SliceType~SliceEnd~"|"}
+Slices     = {"|"~Slice*}
+Slice      = _{SliceStart?~SliceType?~SliceEnd?~"|"}
 SliceStart = {NUMBER+}
 SliceEnd   = {NUMBER+}
 SliceType  = {SliceAbs|SliceFwd|SliceRew}

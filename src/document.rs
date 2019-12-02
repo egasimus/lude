@@ -49,7 +49,12 @@ impl Document {
             self.longest = duration
         }
 
-        let event = Event { src: src.to_string(), slice_start, slice_end, duration };
+        let event = Event {
+            src: src.to_string(),
+            slice_start,
+            slice_end,
+            duration
+        };
         match self.events.get_mut(&at) {
             Some(events) => events.push(event),
             None => {
