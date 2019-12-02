@@ -1,28 +1,33 @@
 WHITESPACE = _{" "|NEWLINE}
 Separator  = _{WHITESPACE|NEWLINE}
+String     = {(LETTER|NUMBER|"."|"_")+}
+
 File       = {SOI~Doc~EOI}
 Doc        = {Statement*}
-Statement  = {Comment|Jump|Event|MultiEvent|Grid|Assign|SubDoc}
-Comment    = {"#"}
-Jump       = {"@"~(RelTime|Time)}
+Statement  = {Comment|Jump|Skip|Back|Sync|Source|Slices|Assign|Alias}
+
+Comment    = {"(" ~ ANY* ~ ")"}
+
+Jump       = {"@"~Time}
+Skip       = {"+"~Time}
+Back       = {"-"~Time}
+Sync       = {"#"~Time}
 Time       = {NUMBER+}
-Relative   = {("+"|"-")}
-RelTime    = {Relative~Time}
-Event      = {(Path|Alias) ~ Slice*}
-Slice      = _{SliceAbs|SliceFwd|SliceRew}
-SliceAbs   = {"["~SliceStart?~":"~SliceEnd?~"]"}
-SliceFwd   = {"["~SliceStart?~"+"~SliceEnd?~"]"}
-SliceRew   = {"["~SliceStart?~"-"~SliceEnd?~"]"}
+
+Source     = {Path}
+Path       = @{("/"+|"./"|"../")+~Segment~("/"~Segment)*~"/"?}
+Segment    = @{String}
+
+Slices     = _{"|"~Slice*}
+Slice      = {SliceStart?~SliceType~SliceEnd~"|"}
 SliceStart = {NUMBER+}
 SliceEnd   = {NUMBER+}
-Path       = @{("/"+|"./"|"../")+~Segment~("/"~Segment)*~"/"?}
-String     = {(LETTER|NUMBER|"."|"_")+}
-Segment    = @{String}
+SliceType  = {SliceAbs|SliceFwd|SliceRew}
+SliceAbs   = {":"}
+SliceFwd   = {"+"}
+SliceRew   = {"-"}
+
+Assign     = {Identifier~"="~SubDoc}
 Identifier = @{String}
+SubDoc     = {"["~Doc~"]"}
 Alias      = {Identifier}
-MultiEvent = {Event~("&"~Event)+}
-Rest       = {"."}
-Grid       = {"["~(Event|Rest)+~"]"}
-Assign     = {(Alias~"="~Event)|Marker}
-Marker     = {Identifier ~ ":"}
-SubDoc     = {Path|("("~Doc~")")}
