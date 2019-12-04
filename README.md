@@ -1,8 +1,22 @@
 # Language
 
-**Sik** is a language for painting with **time**.
+**Lude** (a.k.a. **ludelang**) is a language for painting with **time**.
 
-## Overview
+## Example
+
+**TODO**
+
+## Renderer arguments
+
+* Input file
+* **TODO** Source paths (merged)
+* **TODO** Output format and destination path
+
+## Realtime control
+
+**TODO**
+
+## Language overview
 A **document** is a text string describing a temporal sequence of events.
 
 It is **parsed** by [Pest](https://pest.rs) into **statements**
@@ -45,6 +59,7 @@ Stating one of the following commands moves the cursor:
   so that you can reference a point in time by a name rather than a number.
   It is equivalent ot an alias (see below)
 * **TODO** use `/` and `*` for speeding up/slowing down
+* **TODO** add something for repetition
 
 ### Source
 Stating a **path** to a **source** makes that source **active**.
@@ -56,8 +71,8 @@ To **write** a portion of the active source, use a **slice**.
 This puts some samples at the cursor and advances the cursor
 by the number of samples.
 
-Following a slice with `&` prevents the cursor from advancing.
-allowing multiple slices to be played simultaneously.
+**TODO** Following a slice with `&` prevents the cursor from advancing.
+This allows multiple slices to be triggered simultaneously.
 
 The following slices are available:
 
@@ -84,6 +99,9 @@ Assignment is of the form `NAME = [CONTENT]`.
 Afterwards, writing `NAME` is equivalent to writing `CONTENT`.
 
 ### Command
-
 **TODO** use `!` for commands to the renderer (such as setting sample rate,
 mixing algorithm, etc)
+
+### Alter
+**TODO**
+
