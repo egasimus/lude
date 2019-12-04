@@ -1,103 +1,7 @@
 use crate::eval::{read, eval};
 use crate::render::{render, to_channels, to_frames};
-
-#[test]
-/// a document can contain zero statements
-fn test_empty_document () {
-    let doc = eval(read(""));
-    assert_eq!(doc.length, 0);
-    assert_eq!(doc.events.len(), 0);
-
-    let doc = eval(read(" "));
-    assert_eq!(doc.length, 0);
-    assert_eq!(doc.events.len(), 0);
-
-    let doc = eval(read("\n"));
-    assert_eq!(doc.length, 0);
-    assert_eq!(doc.events.len(), 0);
-
-    println!("Render #1A (empty, frame 0)");
-    let doc = eval(read(""));
-    let out = render(&doc, 0, 0);
-    assert_eq!(out.len(), 1);
-
-    println!("Render #1B (empty, frames 100-300)");
-    let out = render(&doc, 100, 300);
-    assert_eq!(out.len(), 201);
-}
-
-#[test]
-/// a document containing one or more simple events
-fn test_simple_event () {
-    let doc = eval(read("./test/100ms.wav"));
-    assert_eq!(doc.events.len(), 1);
-    assert_eq!(doc.length, 4410);
-
-    let doc = eval(read("./test/100ms.wav ./test/100ms.wav"));
-    assert_eq!(doc.events.len(), 2);
-    assert_eq!(doc.length, 8820);
-
-    println!("Render #2 (100ms.wav, frames 0-4412)");
-    let doc = eval(read("./test/100ms.wav"));
-    let out = render(&doc, 0, 4412);
-    assert_eq!(out.len(), 4413);
-    assert_some(&out, 0);
-    assert_some(&out, 4411);
-    assert_some(&out, 4412);
-}
-
-#[test]
-/// a document containing simple events and/or jumps
-fn test_jumps () {
-    let doc = eval(read("./test/100ms.wav @10 ./test/100ms.wav"));
-    assert_eq!(doc.events.len(), 2);
-    assert_eq!(doc.length, 4420);
-
-    let doc = eval(read("./test/100ms.wav @+10 ./test/100ms.wav"));
-    assert_eq!(doc.events.len(), 2);
-    assert_eq!(doc.length, 8830);
-
-    let doc = eval(read("./test/100ms.wav @-4410 ./test/100ms.wav"));
-    assert_eq!(doc.events.len(), 1);
-    assert_eq!(doc.events.get(&0).unwrap().len(), 2);
-    assert_eq!(doc.length, 4410);
-
-    println!("Render #3 (phase cancellation)");
-    let doc = eval(read("./test/100ms.wav @0 ./test/100ms_inverted.wav"));
-    let out = render(&doc, 0, 100);
-    //println!("{:?}", &out);
-}
-
-#[test]
-/// a document containing a sliced event
-fn test_slice () {
-    println!("Render #4A (1 frame of slice)");
-    let doc = eval(read("./test/100ms.wav[10:30]"));
-    assert_eq!(doc.length, 20);
-    let out = render(&doc, 0, 0);
-    println!("Render #4A = {:?}", &out);
-    assert_eq!(out.len(), 1);
-
-    println!("Render #4B (30 frames of slice)");
-    let out = render(&doc, 0, 29);
-    println!("Render #4B = {:?}", &out);
-    assert_eq!(out.len(), 30);
-    for i in 0..21 { assert_some(&out, i); }
-    for i in 21..30 { assert_none(&out, i); }
-
-    let doc = eval(read("@10 ./test/100ms.wav[10:20] @30 ./test/100ms.wav[0:10]"));
-    println!("Render #4C (two slices)");
-    let out = render(&doc, 0, 100);
-    println!("Render #4C = {:?}", &out);
-    for i in 0..10 { assert_none(&out, i); }
-    for i in 10..21 { assert_some(&out, i); }
-    for i in 21..30 { assert_none(&out, i); }
-    for i in 31..41 { assert_some(&out, i); }
-    for i in 41..101 { assert_none(&out, i); }
-    println!("Flat   #4C = {:?}", to_frames(to_channels(out)));
-
-    //println!("Render #4C (overlapping slices)");
-}
+use crate::document::Document;
+use crate::types::{FrameTime, Chunk};
 
 fn assert_some<T> (v: &Vec<Option<T>>, i: usize) {
     match v.get(i).unwrap() {
@@ -110,5 +14,78 @@ fn assert_none<T: std::fmt::Debug> (v: &Vec<Option<T>>, i: usize) {
     match v.get(i).unwrap() {
         Some(x) => panic!("#{} should not exist, was {:?}", &i, &x),
         None => {}
+    }
+}
+
+fn eval_expect_len (src: &str, len: FrameTime, elen: usize) -> Document {
+    let doc = eval(read(src));
+    assert_eq!(doc.length, len);
+    assert_eq!(doc.events.len(), elen);
+    doc
+}
+
+fn render_expect_len (
+    doc: &Document, from: FrameTime, to: FrameTime, len: usize
+) -> Chunk {
+    let out = render(&doc, from, to);
+    assert_eq!(out.len(), len);
+    out
+}
+
+#[test]
+fn test_0_empty () {
+    for (i, src) in vec!["", " ", "\n"].iter().enumerate() {
+        eprintln!("--- test 0.{} ---", &i);
+        let doc = eval_expect_len(src, 0, 0);
+        render_expect_len(&doc, 0,   0,   1);
+        render_expect_len(&doc, 100, 300, 201);
+    }
+}
+
+#[test]
+fn test_1_source_slice () {
+    for (i, (src, events, samples)) in vec![
+        ("./test/100ms.wav", 0, 0),
+        // ("./test/100ms.wav|", 0, 0), TODO test error
+        ("./test/100ms.wav||", 1, 4410),
+        ("./test/100ms.wav|||", 2, 8820),
+        ("./test/100ms.wav||||", 3, 13230),
+        ("./test/100ms.wav|||:2205|", 3, 11025),
+        ("./test/100ms.wav|||2205:|./test/100ms.wav", 3, 11025),
+        ("./test/100ms.wav|||2205:|./test/100ms_inverted.wav||", 4, 15435),
+    ].iter().enumerate() {
+        eprintln!("--- test 1.{} --- {}", &i, &src);
+        let doc = eval(read(src));
+        assert_eq!(doc.events.len(), *events);
+        assert_eq!(doc.length, *samples);
+    }
+}
+
+#[test]
+fn test_2_jumps () {
+    for (i, (src, events, samples, ranges)) in vec![
+        (
+            "@10 ./test/100ms.wav|:10| @30 ./test/100ms.wav|:10|:10|",
+            0, 50, vec![
+                (true,  0, 0),
+                (false, 1, 1)
+            ]
+        )
+    ].iter().enumerate() {
+        eprintln!("--- test 1.{} --- {}", &i, &src);
+        let doc = eval(read(src));
+        let out = render_expect_len(&doc, 0, *samples, *samples+1);
+        for (exists, start, end) in ranges {
+            expect_range(&out, *exists, *start, *end);
+        }
+    }
+}
+
+fn expect_range (out: &Chunk, exists: bool, start: FrameTime, end: FrameTime) {
+    for i in start..end {
+        match exists {
+            true  => assert_some(&out, i),
+            false => assert_none(&out, i)
+        }
     }
 }

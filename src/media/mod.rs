@@ -31,10 +31,10 @@ impl SoundMap {
             }
         }.clone()
     }
-    pub fn get_duration (&self, path: &str) -> u128 {
+    pub fn get_duration (&self, path: &str) -> FrameTime {
         let sound = self.get_sound(path);
         let info = sound.get_sndinfo();
-        info.frames as u128
+        info.frames as FrameTime
     }
     pub fn get_frame (&self, path: &str, frame: i64) -> Option<Frame> {
         if frame < 0 { return None }

@@ -9,7 +9,7 @@ It is **parsed** by [Pest](https://pest.rs) into **statements**
 which are **evaluated** into a full, unambiguous description of
 the **slices** that are to be **rendered** to an **output**.
 
-* `TODO` Render the results of the parse and evaluate stages in a GUI,
+* **TODO** Render the results of the parse and evaluate stages in a GUI,
 which allows the source file to be manipulated in a simple, semantics-aware
 manner. See [Iced](https://github.com/hecrj/iced).
 
@@ -19,7 +19,7 @@ A document has a temporal **length**, equal to
 the start point of the last slice
 plus the length of the last slice.
 
-* `TODO` Make whitespace less significant.
+* **TODO** Make whitespace less significant.
 
 ### Writing comments.
 Things between `(` and `)` are ignored.
@@ -31,9 +31,10 @@ Time is measured in **frames**, represented by an **unsigned integer**.
 Frames correspond to the **output sample rate** (currently hardcoded
 at 44100 Hz)
 
-* `TODO` Measure time in [flicks](https://en.wikipedia.org/wiki/Flick_(time)).
-* `TODO` Allow custom units of time to be defined.
-* `TODO` Allow output sample rate to be set.
+* **TODO** Measure time in [flicks](https://en.wikipedia.org/wiki/Flick_(time)).
+* **TODO** Index time from 1 instead of 0
+* **TODO** Allow custom units of time to be defined.
+* **TODO** Allow output sample rate to be set.
 
 Stating one of the following commands moves the cursor:
 
@@ -43,11 +44,12 @@ Stating one of the following commands moves the cursor:
 * The **sync** command gives a **name** to the current value of the cursor,
   so that you can reference a point in time by a name rather than a number.
   It is equivalent ot an alias (see below)
+* **TODO** use `/` and `*` for speeding up/slowing down
 
 ### Source
 Stating a **path** to a **source** makes that source **active**.
 
-* `TODO` Paths are evaluated relative to the location of the source file.
+* **TODO** Paths are evaluated relative to the location of the source file.
 
 ### Slice
 To **write** a portion of the active source, use a **slice**.
@@ -60,6 +62,7 @@ allowing multiple slices to be played simultaneously.
 The following slices are available:
 
 * The `||` slice writes the full source.
+  from `x` frames into the source up to the end of the source.
 * The `|x:|` slice writes the part of the source
   from `x` frames into the source up to the end of the source.
 * The `|:y| slice writes the part of the source
@@ -70,8 +73,17 @@ The following slices are available:
   between `x` and `x+n`.
 * The `|x-n|` slice writes the part of the source
   between `x` and `x-n`.
-* `TODO` wrap slices around
+* **TODO** wrap slices around
+* **TODO** source cursor for `|+n|` / `|-n|` (or are those jump/skip?)
+* **TODO** The `|x|` slice writes one frame of the source.
+* **TODO** The `|x,y,...| slice writes individual frames.
+* **TODO** The `|x_n|` slice writes the `x`th frame `n` times
 
 ### Name
 Assignment is of the form `NAME = [CONTENT]`.
 Afterwards, writing `NAME` is equivalent to writing `CONTENT`.
+
+### Command
+
+**TODO** use `!` for commands to the renderer (such as setting sample rate,
+mixing algorithm, etc)

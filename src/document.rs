@@ -1,36 +1,41 @@
-use crate::types::{FrameTime, Frame};
+use crate::types::{FrameTime, Frame, SliceType};
 use crate::media::SoundMap;
 use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub struct Event {
-    src: String,
-    slice_start: Option<FrameTime>,
-    slice_end: Option<FrameTime>,
-    duration: FrameTime,
+    src:         String,
+    slice_start: FrameTime,
+    slice_end:   FrameTime,
+    duration:    FrameTime,
+}
+
+impl Event {
+    fn len (&self) -> FrameTime { self.duration }
 }
 
 #[derive(Debug)]
 pub struct Document {
-    media: SoundMap,
+    media:      SoundMap,
     pub length: FrameTime,
     pub events: BTreeMap<FrameTime, Vec<Event>>,
-    longest: FrameTime,
+    longest:    FrameTime,
 }
 
 impl Document {
     pub fn new () -> Document {
         Document {
-            media: SoundMap::new(),
-            length: 0,
-            events: BTreeMap::new(),
+            media:   SoundMap::new(),
+            length:  0,
+            events:  BTreeMap::new(),
             longest: 0
         }
     }
-    pub fn add_event (
+    pub fn write (
         &mut         self,
         at:          FrameTime,
         src:         &str,
+        slice_type:  SliceType,
         slice_start: Option<FrameTime>,
         slice_end:   Option<FrameTime>,
     ) -> FrameTime {
@@ -38,33 +43,44 @@ impl Document {
         // used for determining the range of frame times
         // that may contain events that matter in a frame
         //println!("{} {:?} {:?}", &src, &slice_start, &slice_end);
-        let duration = match slice_end {
-            Some(slice_end) => match slice_start {
-                Some(slice_start) => slice_end - slice_start,
-                None => slice_end
+        let src_len = self.media.get_source_length(src);
+        let (slice_start, slice_end, duration) = match slice_type {
+            SliceType::Full => (0, src_len, src_len),
+            SliceType::Abs => match (slice_start, slice_end) {
+                (Some(start), Some(end)) => (start, end, abs_sub(start, end)),
+                (Some(start), None     ) => (start, src_len, src_len - start),
+                (None,        Some(end)) => (0, end, end),
+                (None,        None     ) => (0, src_len, src_len)
             },
-            None => self.media.get_source_length(src)
+            SliceType::Fwd => match slice_start {
+                None => panic!("fwd slice must be |x+n|"),
+                Some(start) => match slice_end {
+                    Some(len) => (start, start + len, len),
+                    None => panic!("fwd slice must be |x+n|")
+                }
+            },
+            SliceType::Rew => match slice_start {
+                None => panic!("rew slice must be |x-n|"),
+                Some(start) => match slice_end {
+                    Some(len) => (start, start - len, len),
+                    None => panic!("rew slice must be |x-n|")
+                }
+            }
         };
-        if duration > self.longest {
-            self.longest = duration
-        }
-
-        let event = Event {
-            src: src.to_string(),
-            slice_start,
-            slice_end,
-            duration
-        };
+        let src = src.to_string();
+        self.add_event(at, Event { src, slice_start, slice_end, duration });
+        duration
+    }
+    fn add_event (&mut self, at: FrameTime, event: Event) {
+        eprintln!("add_event {}", &at);
         match self.events.get_mut(&at) {
-            Some(events) => events.push(event),
             None => {
                 let mut events = Vec::new();
                 events.push(event);
                 self.events.insert(at, events);
-            }
+            },
+            Some(events) => events.push(event),
         }
-
-        duration
     }
     pub fn bounds (&self) -> (FrameTime, FrameTime, FrameTime) {
         let min = *self.events.keys().next().unwrap();
@@ -72,7 +88,7 @@ impl Document {
         let longest = self.longest;
         (min, max, longest)
     }
-    pub fn get_frame (&self, frame_index: u128) -> Option<Frame> {
+    pub fn get_frame (&self, frame_index: FrameTime) -> Option<Frame> {
         // nothing if document is empty
         if self.events.len() == 0 { return None }
 
@@ -91,15 +107,9 @@ impl Document {
         for (event_start, events) in event_range {
             let event_frame_index = frame_index - event_start;
             for event in events {
-                let offset = match event.slice_start {
-                    None => 0,
-                    Some(offset) => offset
-                };
+                let offset = event.slice_start;
                 let index = (event_frame_index + offset) as i64;
-                match event.slice_end {
-                    Some(slice_end) => if index as u128 > slice_end { continue },
-                    _=>{}
-                }
+                if index as FrameTime > event.slice_end { continue }
                 //println!("{}={:?}[{}]", &frame_index, &event.src, &index);
                 match self.media.get_frame(&event.src, index) {
                     Some(frame) => event_frames.push(frame),
@@ -125,5 +135,13 @@ fn sum_subframes (event_frames: Vec<Frame>) -> Option<Frame> {
         Some(frame)
     } else {
         None
+    }
+}
+
+fn abs_sub (x: FrameTime, y: FrameTime) -> FrameTime {
+    if x >= y {
+        x - y
+    } else {
+        y - x
     }
 }

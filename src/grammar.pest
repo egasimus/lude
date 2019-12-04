@@ -4,7 +4,7 @@ String     = {(LETTER|NUMBER|"."|"_")+}
 
 File       = {SOI~Doc~EOI}
 Doc        = {Statement*}
-Statement  = {Comment|Jump|Skip|Back|Sync|Source|Slices|Assign|Alias}
+Statement  = _{Comment|Jump|Skip|Back|Sync|Source|Slices|Assign|Alias}
 
 Comment    = {"(" ~ ANY* ~ ")"}
 
@@ -18,11 +18,11 @@ Source     = {Path}
 Path       = @{("/"+|"./"|"../")+~Segment~("/"~Segment)*~"/"?}
 Segment    = @{String}
 
-Slices     = {"|"~Slice*}
-Slice      = _{SliceStart?~SliceType?~SliceEnd?~"|"}
+Slices     = _{"|"~Slice*}
+Slice      = {(SliceStart?~SliceType~SliceEnd?)?~"|"}
 SliceStart = {NUMBER+}
 SliceEnd   = {NUMBER+}
-SliceType  = {SliceAbs|SliceFwd|SliceRew}
+SliceType  = _{SliceAbs|SliceFwd|SliceRew}
 SliceAbs   = {":"}
 SliceFwd   = {"+"}
 SliceRew   = {"-"}

@@ -1,5 +1,5 @@
 use crate::document::Document;
-use crate::types::FrameTime;
+use crate::types::{FrameTime, SliceType};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::time::Instant;
@@ -27,13 +27,6 @@ pub fn eval (parsed: Pair<Rule>) -> Document {
     doc
 }
 
-enum SliceType {
-    Full,
-    Abs,
-    Fwd,
-    Rew
-}
-
 /// Handles evaluation state.
 // 'i lifetime marker is required by Pest.
 struct Eval<'i> {
@@ -57,37 +50,29 @@ impl Eval<'_> {
     pub fn run (&self) -> Document {
         let parsed = self.parsed.replace(None).unwrap();
         for statement in parsed.into_inner() {
-            for inner in statement.into_inner() {
-                match inner.as_rule() {
-                    Rule::Comment => {},
-                    Rule::Jump => self.jump(inner.into_inner().next().unwrap()),
-                    Rule::Skip => self.skip(inner.into_inner().next().unwrap()),
-                    Rule::Back => self.back(inner.into_inner().next().unwrap()),
-                    Rule::Sync => self.sync(inner.into_inner().next().unwrap()),
-                    Rule::Source => self.source(inner),
-                    Rule::Slice => self.slice(inner),
-                    Rule::Assign => self.assign(inner),
-                    Rule::Alias => self.alias(inner),
-                    _ => unreachable!(),
-                };
-            }
+            match statement.as_rule() {
+                Rule::Comment => {},
+                Rule::Jump   => self.jump(statement.into_inner().next().unwrap()),
+                Rule::Skip   => self.skip(statement.into_inner().next().unwrap()),
+                Rule::Back   => self.back(statement.into_inner().next().unwrap()),
+                Rule::Sync   => self.sync(statement.into_inner().next().unwrap()),
+                Rule::Source => self.source(statement),
+                Rule::Slice  => self.slice(statement),
+                Rule::Assign => self.assign(statement),
+                Rule::Alias  => self.alias(statement),
+                _ => unreachable!(),
+            };
         }
         let mut doc = self.doc.replace(Document::new()); // how do i drop
         doc.length = *self.cursor.borrow();
         doc
     }
     fn jump (&self, time: Pair<Rule>) {
-        let time = FrameTime::from_str_radix(
-            time.as_str().to_string().trim(),
-            10
-        ).unwrap();
+        let time = pair_to_frame_time(time);
         self.cursor.replace(time);
     }
     fn skip (&self, time: Pair<Rule>) {
-        let time = FrameTime::from_str_radix(
-            time.as_str().to_string().trim(),
-            10
-        ).unwrap();
+        let time = pair_to_frame_time(time);
         self.cursor.replace_with(|cursor| *cursor + time);
     }
     fn back (&self, time: Pair<Rule>) {
@@ -111,8 +96,8 @@ impl Eval<'_> {
         let mut slice_end   = None;
         for pair in slice.into_inner().flatten() {
             match pair.as_rule() {
-                Rule::SliceStart => slice_start = pair_to_frame_time(pair),
-                Rule::SliceEnd => slice_end = pair_to_frame_time(pair),
+                Rule::SliceStart => slice_start = Some(pair_to_frame_time(pair)),
+                Rule::SliceEnd => slice_end = Some(pair_to_frame_time(pair)),
                 Rule::SliceAbs => slice_type = SliceType::Abs,
                 Rule::SliceFwd => slice_type = SliceType::Fwd,
                 Rule::SliceRew => slice_type = SliceType::Rew,
@@ -120,8 +105,8 @@ impl Eval<'_> {
             }
         }
         let cursor = *self.cursor.borrow();
-        let advance = self.doc.borrow_mut().add_event(
-            cursor, &self.source.borrow(), slice_start, slice_end
+        let advance = self.doc.borrow_mut().write(
+            cursor, &self.source.borrow(), slice_type, slice_start, slice_end
         );
         self.cursor.replace_with(|cursor| *cursor + advance);
     }
@@ -131,30 +116,8 @@ impl Eval<'_> {
     fn alias (&self, _name: Pair<Rule>) {
         panic!("not implemented")
     }
-    fn event (&self, event: Pair<Rule>) {
-        let mut name = "";
-        let mut slice_start = None;
-        let mut slice_end = None;
-        for pair in event.into_inner().flatten() {
-            match pair.as_rule() {
-                Rule::Path => name = pair.as_str(),
-                Rule::SliceStart => slice_start = Some(
-                    FrameTime::from_str_radix(pair.as_str(), 10).unwrap()
-                ),
-                Rule::SliceEnd => slice_end = Some(
-                    FrameTime::from_str_radix(pair.as_str(), 10).unwrap()
-                ),
-                _ => unreachable!()
-            }
-        }
-        let cursor = *self.cursor.borrow();
-        let advance = self.doc.borrow_mut().add_event(
-            cursor, &name, slice_start, slice_end
-        );
-        self.cursor.replace(cursor + advance);
-    }
 }
 
-fn pair_to_frame_time (pair: Pair<Rule>) -> Option<FrameTime> {
-    Some(FrameTime::from_str_radix(pair.as_str(), 10).unwrap())
+fn pair_to_frame_time (pair: Pair<Rule>) -> FrameTime {
+    FrameTime::from_str_radix(pair.as_str(), 10).unwrap()
 }
