@@ -23,7 +23,10 @@ use io::file::write_to_file;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() == 1 { exit(1); }
+    if args.len() == 1 {
+        println!("Usage: lude SOURCE_FILE");
+        exit(1);
+    }
     let filename = &args[1];
     let source = read_to_string(filename).expect("cannot read file");
     //eprintln!("{:#?}", &source);
