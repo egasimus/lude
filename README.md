@@ -1,6 +1,6 @@
 # Language
 
-**Lude** (a.k.a. **ludelang**) is a language for painting with **time**.
+**Lude** is a language for painting with **time**.
 
 ## Example
 
