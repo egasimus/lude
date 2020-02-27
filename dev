@@ -20,7 +20,7 @@ loopTests () {
 ToRenderExample="cargo run example/test_02.seq"
 
 loopRender () {
-  getSourceFiles | entr -c "ToRenderExample"
+  getSourceFiles | entr -c "$ToRenderExample"
 }
 
 pushd $(dirname $(realpath $0)) > /dev/null
