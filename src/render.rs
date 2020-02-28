@@ -3,6 +3,33 @@ use std::cell::RefCell;
 use crate::document::Document;
 use crate::types::{FrameTime, Frame, Chunk, Wave};
 
+/// Generates and returns the `Chunk` of `doc`
+/// that is between `begin` and `end`.
+/// ```
+/// let doc = Document::new()
+/// assert!(render(doc, 0, 999).len(), 1000)
+/// ```
+/// Some old musings cc rendering:
+/// In a perfect world...
+/// * samplers would be 1 process per voice or 1 process per instrument,
+///   triggered via osc over udp or, even better, cosc over jack
+/// * the sequencer would be separate, synced via jack transport which does not
+///   seem to be supported by rust-jack atm
+/// * some hands-on access/visibility via fuse
+/// * if ipc becomes too heavy, merge everything into one address space
+/// * or, migrate to a simpler OS ;)
+/// * but for now let's overengineer it into an integrated sampler/sequencer
+/// * even though this exists: https://github.com/RustAudio/sampler
+/// * it's gonna be a nice exercise and the cuepoint juggling functionality
+///   can be merged into an existing project
+/// * what's unique about this approach: the semantic overlay (timeline + tracks)
+///   that applies equally to a single sample, a sequence of samples, or a whole
+///   composition (a sequence of sequences) and is described through a DSL
+
+/// * The renderer may handle magic variables in a special way.
+/// * For audio, magic variables are samplerate! and bpm!
+/// * For audio, the time unit is the length of a bar, subdivided.
+/// * Event grids are defined in terms of the time unit.
 pub fn render (doc: &Document, begin: FrameTime, end: FrameTime) -> Chunk {
     let start = Instant::now();
 
@@ -19,6 +46,7 @@ pub fn render (doc: &Document, begin: FrameTime, end: FrameTime) -> Chunk {
     frames
 }
 
+/// Converts a `Chunk` of optional multi-channel `Frame`s to an array of `Wave`s.
 pub fn to_channels (chunk: Chunk) -> Vec<Wave> {
     let start = Instant::now();
 
@@ -65,6 +93,7 @@ pub fn to_channels (chunk: Chunk) -> Vec<Wave> {
     output
 }
 
+/// Regroups an array of `Wave`s to an array of `Frame`s.
 pub fn to_frames (channels: Vec<Wave>) -> Vec<Frame> {
     let start = Instant::now();
 

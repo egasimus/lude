@@ -9,7 +9,14 @@ use pest::{Parser, iterators::Pair};
 #[grammar = "./grammar.pest"]
 struct DefaultParser;
 
-/// Parses a string using Pest according to the grammar.
+/// The **source code** of a `Document` is **parsed** by
+/// [Pest](https://pest.rs), returning a collection of **statements**.
+/// A document contains zero or more **statements**, separated by **whitespace**.
+/// * **TODO** Make whitespace less significant.
+///
+/// ### Writing comments.
+/// Things between `(` and `)` are ignored.
+/// You can use this to describe things for humans.
 pub fn read (source: &str) -> Pair<Rule> {
     let start = Instant::now();
     let parsed = DefaultParser::parse(Rule::Doc, source)
@@ -18,7 +25,48 @@ pub fn read (source: &str) -> Pair<Rule> {
     parsed
 }
 
-/// Evaluates a parse result into a document.
+/// A collection of **statements** is **evaluated**, returning a `Document` -
+/// a full, unambiguous description of what **slices** should be
+/// **rendered** to the **output**.
+///
+/// ### Time
+/// During evaluation, a **cursor** points to the current **time**.
+/// Time is measured in **frames**, represented by an **unsigned integer**.
+/// Frames correspond to the **output sample rate** (currently hardcoded
+/// at 44100 Hz)
+///
+/// * **TODO** Measure time in [flicks](https://en.wikipedia.org/wiki/Flick_(time)).
+/// * **TODO** Index time from 1 instead of 0
+/// * **TODO** Allow custom units of time to be defined.
+/// * **TODO** Allow output sample rate to be set.
+///
+/// Stating one of the following commands moves the cursor:
+///
+/// * The **jump** command (`@NUMBER`) sets the cursor to `NUMBER`.
+/// * The **skip** command (`@+NUMBER`) moves the cursor forward by `NUMBER`.
+/// * The **back** command (`@-NUMBER`) mobes the cursor back by `NUMBER`.
+/// * The **sync** command gives a **name** to the current value of the cursor,
+///   so that you can reference a point in time by a name rather than a number.
+///   It is equivalent ot an alias (see below)
+/// * **TODO** use `/` and `*` for speeding up/slowing down
+/// * **TODO** add something for repetition
+///
+/// ### Source
+/// Stating a **path** to a **source** makes that source **active**.
+///
+/// * **TODO** Paths are evaluated relative to the location of the source file.
+///
+///
+/// ### Name
+/// Assignment is of the form `NAME = [CONTENT]`.
+/// Afterwards, writing `NAME` is equivalent to writing `CONTENT`.
+///
+/// ### Command
+/// **TODO** use `!` for commands to the renderer (such as setting sample rate,
+/// mixing algorithm, etc)
+///
+/// ### Alter
+/// **TODO**
 pub fn eval (parsed: Pair<Rule>) -> Document {
     let start = Instant::now();
     let evaluator = Eval::new(parsed);
